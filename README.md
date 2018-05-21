@@ -25,7 +25,7 @@ Keep in mind - if some handler is not defined in some state, and you are sending
 > Written in TypeScript. To make things less flexible. Flow definitions as incomplete. 
 
 # Prior art
-This library combines ideas [xstate](https://github.com/davidkpiano/xstate) and [redux-saga](https://github.com/redux-saga/redux-saga).
+This library combines ideas from [xstate](https://github.com/davidkpiano/xstate) and [redux-saga](https://github.com/redux-saga/redux-saga).
 The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
 developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
 
@@ -98,6 +98,22 @@ Hook took a place when message starts or ends it existance, ie entering or leavi
 - message handler could change phase, state and trigger a new message
 - hook could change state or trigger a new message, but not change phase
 - external consumer could only trigger a new message 
+ 
+## InternalState
+Each `on` or `hook` handler will receive `internalState` as a first argument, with following shape
+```js
+{
+ attrs: { ...AttributesYouSet };  // attributes
+ state: { ..CurrentState };       // state
+
+ setState(newState);              // setState (as seen in React)
+
+ transitTo(phase);                // move to a new phase
+
+ emit(message, ...args);          // emit Signal to connected 
+
+ trigger(event, ...args);         // trigger own message handler 
+``` 
  
 # Examples 
  
@@ -222,6 +238,8 @@ const Login = faste()
 
 By default `@busy` will queue messages, executing them after leaving busy phase.
 If want to ignore them -  instead of `@busy`, you might use `@locked` phase, which will ignore them.
+
+PS: You probably will never need those states.
 
 # Licence
  MIT
