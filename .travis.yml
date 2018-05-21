@@ -5,3 +5,5 @@ cache: yarn
 script:
   - yarn
   - yarn test:ci
+  - yarn build
+  - yarn test:size

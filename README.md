@@ -1,5 +1,7 @@
 # faste [![Build Status](https://secure.travis-ci.org/theKashey/faste.svg)](http://travis-ci.org/theKashey/faste)
 
+> no dependencies, and just 1.5kb
+
 This is a Finite State Machine from SDL([Specification and Description Language](https://en.wikipedia.org/wiki/Specification_and_Description_Language)) prospective.
 SDL defines state as a set of messages, it should react on, and the actions beneath.
 
