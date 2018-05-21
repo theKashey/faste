@@ -1,7 +1,7 @@
 {
   "name": "faste",
   "version": "1.0.0",
-  "description": "",
+  "description": "Block-based, Finite State Machine, made simple",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -11,16 +11,15 @@
     "dev": "ts-react-toolbox dev",
     "test": "ts-react-toolbox test",
     "test:ci": "ts-react-toolbox test --runInBand --coverage",
+    "test:size": "size-limit",
     "build": "ts-react-toolbox build",
     "release": "ts-react-toolbox release",
     "prepublishOnly": "yarn build",
     "lint": "ts-react-toolbox lint",
-    "static": "ts-react-toolbox publish"
+    "static": "ts-react-toolbox publish",
+    "typecheck:flow": "flow check"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/theKashey/faste.git"
-  },
+  "repository": "git+https://github.com/theKashey/faste.git",
   "bugs": {
     "url": "https://github.com/theKashey/faste/issues"
   },
@@ -29,6 +28,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "8.0.0",
+    "flow-bin": "^0.72.0",
     "ts-react-toolbox": "^0.0.46"
   }
 }

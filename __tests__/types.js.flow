@@ -1,0 +1,14 @@
+// @flow
+
+import {faste} from '../src';
+
+const f = faste()
+  .withMessages(['message2'])
+  .withPhases(['idle', 'phase'])
+  .withState({number: 1})
+  .on('message1', ({transitTo, state}) => transitTo('phase' + state.number))
+  .create();
+
+// this should not work
+f.put('message2');
+

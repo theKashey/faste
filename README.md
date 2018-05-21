@@ -6,6 +6,9 @@ SDL defines state as a set of messages, it should react on, and the actions bene
 Once `state` receives a `message` it executes an `action`, which could perform calculations and/or change the
 current state.
 
+> The goal is not to __change the state__, but - __execute bound action__.
+From this prospective faste is closer to RxJX.
+
 Usually "FSM" are more focused on state transitions, often even omitting any operations on message receive.
 >In the Traffic Light example it could be usefull, but in more real life examples - no.
 
@@ -16,6 +19,8 @@ And, make things more common we will call "state" as a "phase", and "state" will
 
 The key idea is not about transition between states, but transition between behaviors.
 Keep in mind - if some handler is not defined in some state, and you are sending a message - it will be __lost__.
+
+> Written in TypeScript. To make things less flexible. Flow definitions as incomplete. 
 
 # Prior art
 This library combines ideas [xstate](https://github.com/davidkpiano/xstate) and [redux-saga](https://github.com/redux-saga/redux-saga).
@@ -31,7 +36,7 @@ developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 200
  
  - `check()` - the final command to check state
  - `create()` - creates a machine.
- - `callbag()` - returns a callbag.
+ - ~~`callbag()` - returns a callbag.~~ (planned)
  
  In development mode, and for typed languages you could use next commands
  - `withState(state)` - set a initial state (use @init hook to derive state from props).
@@ -50,7 +55,7 @@ Each instance of Faste will have:
 
 
  - `phase` - returns the current phase
- - `instance` - returns the current internal state
+ - `instance` - returns the current internal state.
  
  
  - `destroy` - exits the current state, terminates all hooks, and stops machine.
@@ -87,6 +92,11 @@ and `off` will receive result of `on` as a second arg.
 
 Hook took a place when message starts or ends it existance, ie entering or leaving phases if was defined in. 
  
+### Event bus
+- message handler could change phase, state and trigger a new message
+- hook could change state or trigger a new message, but not change phase
+- external consumer could only trigger a new message 
+ 
 # Examples 
  
 ### Connected states
@@ -112,10 +122,8 @@ const displayState = new DisplayState();
 // direct connect
 signalSource.connect(tickState);
 
-// mapped connect
-tickState.connect({
-  currentState: message => displayState.put('display', message)
-});
+// functional connect
+tickState.connect(message => displayState.put('display', message));
 
 // RUN!
 signalSource.start('active');
@@ -143,7 +151,7 @@ new state()
 
 ```js
 const domHook = eventName => ({
-  'on': ({attrs}) => {
+  'on': ({attrs, trigger}) => {
     const callback = event => trigger(eventName, event);    
     attrs.node.addEventListener(eventName, callback);
     return callback;

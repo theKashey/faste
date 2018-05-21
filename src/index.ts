@@ -3,7 +3,7 @@ export type MAGIC_PHASES = "@current" | "@busy" | "@locked"
 
 const BUSY_PHASES: MAGIC_PHASES[] = ["@busy", "@locked"];
 
-export interface InternalMachine<State, Attributes, AvalablePhases, Signals> {
+export interface InternalMachine<State, Attributes, AvalablePhases, Messages, Signals> {
   attrs: Attributes;
   state: State;
 
@@ -11,10 +11,12 @@ export interface InternalMachine<State, Attributes, AvalablePhases, Signals> {
 
   transitTo(phase: AvalablePhases): void;
 
-  emit(message: Signals, ...args: any[]): void
+  emit(message: Signals, ...args: any[]): void;
+
+  trigger: (event: Messages, ...args: any[]) => void;
 }
 
-export type OnCallback<State, Attributes, AvalablePhases, Signals> = (slots: InternalMachine<State, Attributes, AvalablePhases, Signals>, ...args: any[]) => Promise<any> | void;
+export type OnCallback<State, Attributes, AvalablePhases, Messages, Signals> = (slots: InternalMachine<State, Attributes, AvalablePhases, Messages, Signals>, ...args: any[]) => Promise<any> | void;
 
 export interface MessagePhase<Phases> {
   phases: Phases[];
@@ -25,14 +27,17 @@ export interface MessageHandler<State, Attrs, Phases, OnCallback> {
   callback: OnCallback;
 }
 
-type MessageHandlerArray<State, Attrs, Phases, OnCallback> = MessageHandler<State, Attrs, Phases, OnCallback>[];
+export type MessageHandlerArray<State, Attrs, Phases, OnCallback> = MessageHandler<State, Attrs, Phases, OnCallback>[];
 
 export type MessageHandlers<State, Attrs, Phases, Messages, OnCallback> = {
   [name: string]: MessageHandlerArray<State, Attrs, Phases, OnCallback>;
 };
 
-export type OnHookCallback<Messages, State, Attributes, T> = (arg: { attrs: Attributes, state: State, message: Messages }) => T | void;
-export type OffHookCallback<Messages, State, Attributes, T> = (arg: { attrs: Attributes, state: State, message: Messages }, hookInfo: T) => void;
+export type HookArgument<Messages, State, Attributes> =
+  InternalMachine<State, Attributes, "", Messages, "">
+  & { message: Messages };
+export type OnHookCallback<Messages, State, Attributes, T> = (arg: HookArgument<Messages, State, Attributes>) => T | void;
+export type OffHookCallback<Messages, State, Attributes, T> = (arg: HookArgument<Messages, State, Attributes>, hookInfo: T) => void;
 
 export type HookCallback<Messages, State, Attributes, T = any> = {
   on: OnHookCallback<Messages, State, Attributes, T>;
@@ -45,29 +50,33 @@ export type Hooks<State, Attributes, Messages extends string> = {
 
 export type Callbag<T, K> = (state: 0 | 1 | 2, payload: T) => K;
 
-type FasteInstanceHooks<MessageHandlers, FasteHooks> = {
+export type FasteInstanceHooks<MessageHandlers, FasteHooks> = {
   handlers: MessageHandlers;
   hooks: FasteHooks;
 };
 
-type FastInstanceState<State, Attributes, Phases, Signals> = {
+export type FastInstanceState<State, Attributes, Phases, Messages, Signals> = {
   state: State,
   attrs: Attributes;
   phase?: Phases | MAGIC_PHASES;
-  instance?: InternalMachine<State, Attributes, Phases, Signals>
+  instance?: InternalMachine<State, Attributes, Phases, Messages, Signals>
 };
 
-type ConnectCall<Signals> = (event: Signals, args: any[]) => void;
+export type ConnectCall<Signals> = (event: Signals, args: any[]) => void;
 
 const callListeners = (listeners: ((...args: any[]) => void)[], ...args: any[]) =>
   listeners.forEach(listener => listener(...args));
 
-interface FastePutable<Messages> {
+const debug = (instance: any, event: string, ...args: any[]) => {
+  // console.log(event, args);
+};
+
+export interface FastePutable<Messages> {
   put(message: Messages | MAGIC_EVENTS, ...args: any[]): this;
 }
 
 export class FasteInstance<State, Attributes, Phases, Messages, Signals, MessageHandlers, FasteHooks> {
-  private state: FastInstanceState<State, Attributes, Phases, Signals>;
+  private state: FastInstanceState<State, Attributes, Phases, Messages, Signals>;
 
   private handlers: FasteInstanceHooks<MessageHandlers, FasteHooks>;
 
@@ -76,21 +85,24 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
   private messageQueue: ({ message: Messages | MAGIC_EVENTS, args: any })[];
   private callDepth: number;
 
-  constructor(state: FastInstanceState<State, Attributes, Phases, Signals>, handlers: FasteInstanceHooks<MessageHandlers, FasteHooks>) {
-    this.state = {
-      ...state,
-      instance: this._createInstance()
-    };
+  constructor(state: FastInstanceState<State, Attributes, Phases, Messages, Signals>, handlers: FasteInstanceHooks<MessageHandlers, FasteHooks>) {
+    this.state = {...state};
+    this.state.instance = this._createInstance()
     this.handlers = handlers;
+
+    this.stateObservers = [];
+    this.messageObservers = [];
+
+    this.start();
   }
 
   private _collectHandlers(phase: Phases | MAGIC_PHASES): { [key: string]: boolean } {
-    const h = this.handlers as any;
+    const h = this.handlers.handlers as any;
     return Object
-      .keys(this.handlers)
-      .filter(handler => {
+      .keys(h)
+      .filter(handler =>
         h[handler].some((hook: MessagePhase<Phases | MAGIC_PHASES>) => !hook.phases || hook.phases.indexOf(phase) >= 0)
-      })
+      )
       .reduce((acc, key) => ({...acc, [key]: true}), {})
   }
 
@@ -100,74 +112,102 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     this.put('@change', oldState);
   };
 
-  private _transitTo(phase: Phases) {
+  private _transitTo(phase: Phases | MAGIC_PHASES) {
     const oldPhase = this.state.phase;
+    debug(this, 'transit', phase);
     if (oldPhase != phase) {
-      this.__put("@leave", this.state.phase);
-      this.__performHookOff(phase);
+      this.__put("@leave", phase);
+      this.__performHookOn(phase);
       this.state.phase = phase;
       this.__put('@enter', oldPhase);
 
       callListeners(this.stateObservers, phase);
 
       if (BUSY_PHASES.indexOf(phase as any) === -1) {
-        this._executeMessageQueue();
+        if (!this.callDepth) {
+          this._executeMessageQueue();
+        }
       }
     }
   }
 
-  private _createInstance(): InternalMachine<State, Attributes, Phases, Signals> {
+  private _createInstance(options?: { phase: Phases | MAGIC_PHASES }): InternalMachine<State, Attributes, Phases, Messages, Signals> {
     return {
       state: this.state.state,
       attrs: this.state.attrs,
       setState: (newState: Partial<State>) => this._setState(newState),
-      transitTo: (phase: Phases) => this._transitTo(phase),
+      transitTo: (phase: Phases | MAGIC_PHASES) => this._transitTo(phase === '@current' ? options.phase : phase),
       emit: (message: Signals, ...args: any[]) => callListeners(this.messageObservers, message, ...args),
+      trigger: (event: Messages, ...args: any[]) => this.put(event, ...args),
     }
   }
 
-  private __performHookOff(nextPhase: Phases | null) {
+  private __performHookOn(nextPhase: Phases | MAGIC_PHASES | null) {
     const oldHandlers = this._collectHandlers(this.state.phase);
     const newHandlers = nextPhase ? this._collectHandlers(nextPhase) : {};
 
     const instance = this._createInstance();
-    const h = this.handlers as any;
+    const h = this.handlers.hooks as any;
 
-    Object.keys(oldHandlers).forEach(handler => {
-      if (!newHandlers[handler]) {
-        h[handler].off(instance, h[handler].onValue);
+    Object.keys(newHandlers).forEach(handler => {
+      if (!oldHandlers[handler] && h[handler]) {
+        debug(this, 'hook-on', h[handler]);
+        h[handler].onValue = h[handler].on({
+          ...instance,
+          message: handler
+        });
       }
     });
 
-    Object.keys(newHandlers).forEach(handler => {
-      if (!oldHandlers[handler]) {
-        h[handler].onValue = h[handler].on(instance);
+    Object.keys(oldHandlers).forEach(handler => {
+      if (!newHandlers[handler] && h[handler]) {
+        debug(this, 'hook-off', h[handler]);
+        h[handler].off(instance, h[handler].onValue);
       }
     });
   }
 
   private __put(event: string, ...args: any[]) {
+    debug(this, 'put', event, args);
+
     const h: any = this.handlers.handlers;
     const handlers: MessageHandler<State, Attributes, Phases, (state: any, ...args: any[]) => void>[] = h[event] as any;
     let hits = 0;
 
+    const assertBusy = (result: Promise<any> | any) => {
+      if (BUSY_PHASES.indexOf(this.state.phase as any) >= 0) {
+        if (result && ('then' in result)) {
+          // this is async handler
+        } else {
+          throw new Error('faste: @busy should only be applied for async handlers')
+        }
+      }
+    };
+
+    // Precache state, to prevent message to be passed to the changed state
+    const phase = this.state.phase;
     if (handlers) {
+      const instance = this._createInstance({
+        phase
+      });
+
       handlers.forEach(handler => {
-        const instance = this._createInstance();
         if (handler.phases && handler.phases.length > 0) {
-          if (handler.phases.indexOf(this.state.phase as any) >= 0) {
-            handler.callback(instance, ...args);
+          if (handler.phases.indexOf(phase as any) >= 0) {
+            debug(this, 'message-handler', event, handler);
+            assertBusy(handler.callback(instance, ...args));
             hits++;
           }
         } else {
-          handler.callback(instance, ...args);
+          debug(this, 'message-handler', event, handler);
+          assertBusy(handler.callback(instance, ...args));
           hits++;
         }
       })
     }
 
     if (!hits) {
-      if (event !== '@miss') {
+      if (event[0] !== '@') {
         this.__put('@miss', event);
       }
     }
@@ -175,18 +215,16 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
 
   _executeMessageQueue() {
     if (this.messageQueue.length) {
-      this.messageQueue.forEach(q => this.put(q.message, ...q.args));
+      const q = this.messageQueue;
       this.messageQueue = [];
+      q.forEach(q => this.put(q.message, ...q.args));
     }
   }
 
   start(phase?: Phases): this {
-    this.stateObservers = [];
-    this.messageObservers = [];
     this.messageQueue = [];
     this.callDepth = 0;
     this.__put('@init');
-
     if (phase) {
       this.state.instance.transitTo(phase);
     }
@@ -200,21 +238,25 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
 
   put(message: Messages | MAGIC_EVENTS, ...args: any[]): this {
     if (this.callDepth) {
+      debug(this, 'queue', message, args);
       this.messageQueue.push({message, args});
     } else {
-      this.callDepth++;
+
       switch (this.state.phase) {
         case '@locked':
+          debug(this, 'locked', message, args);
           break; //nop
         case '@busy':
+          debug(this, 'queue', message, args);
           this.messageQueue.push({message, args});
           break;
         default:
-          this.__put(message as string, args);
-      }
-      this.callDepth--;
-      if (!this.callDepth) {
-        this._executeMessageQueue();
+          this.callDepth++;
+          this.__put(message as string, ...args);
+          this.callDepth--;
+          if (!this.callDepth) {
+            this._executeMessageQueue();
+          }
       }
     }
     // find
@@ -242,37 +284,35 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     return this.state.phase;
   }
 
-  instance(): InternalMachine<State, Attributes, Phases, Signals> {
+  instance(): InternalMachine<State, Attributes, Phases, Messages, Signals> {
     return this._createInstance();
   }
 
   destroy(): void {
-    this.__performHookOff(undefined);
+    this.__performHookOn(undefined);
     this.stateObservers = [];
   }
 };
 
-class Faste<State extends object = {},
+export class Faste<State extends object = {},
   Attributes extends object = {},
   Phases extends string = any,
   Messages extends string = any,
   Signals extends string = any,
-  OnCall= OnCallback<State, Attributes, Phases, Signals>,
+  OnCall= OnCallback<State, Attributes, Phases, Messages, Signals>,
   FasteMessageHandlers = MessageHandlers<State, Attributes, Phases, Messages, OnCall>,
   FasteHooks = Hooks<State, Attributes, Phases>,
   > {
 
   private fState: State;
   private fAttrs: Attributes;
-  // private fPhases: Phases[];
   private fHandlers: MessageHandlers<State, Attributes, Phases, Messages, OnCall>;
   private fHooks: FasteHooks;
 
   constructor(state?: State, attrs?: Attributes, messages?: FasteMessageHandlers, hooks?: FasteHooks) {
     this.fState = state;
     this.fAttrs = attrs;
-    // @ts-ignore
-    this.fHandlers = messages || {} as FasteMessageHandlers;
+    this.fHandlers = messages || {} as any;
     this.fHooks = hooks || {} as FasteHooks;
   }
 
@@ -307,6 +347,11 @@ class Faste<State extends object = {},
     return true;
   }
 
+  scope(swapper: (stateIn: this) => void): this {
+    swapper(this);
+    return this;
+  }
+
   create(): FasteInstance<State, Attributes, Phases, Messages, Signals, MessageHandlers<State, Attributes, Phases, Messages, OnCall>, FasteHooks> {
     return new FasteInstance({
       state: this.fState,
@@ -329,7 +374,7 @@ class Faste<State extends object = {},
     return new Faste(this.fState, attributes, this.fHandlers, this.fHooks);
   }
 
-  withPhases<T extends string>(phases?: T): Faste<State, Attributes, T | MAGIC_PHASES, Messages, Signals> {
+  withPhases<T extends string>(phases?: T[]): Faste<State, Attributes, T | MAGIC_PHASES, Messages, Signals> {
     return this as any;
   }
 
@@ -345,30 +390,3 @@ class Faste<State extends object = {},
 export function faste(): Faste {
   return new Faste();
 }
-
-const m = faste();
-
-const f = m
-  .withState({
-    nextState: 'unknown'
-  })
-  .withAttrs({
-    node: 12
-  })
-  .withMessages(['a', 'b', 'message'])
-  .hooks({
-    "a": {
-      on: () => ({obj3: 42}),
-      off: (state, prev) => prev.obj,
-    }
-  })
-  .on('message', ({state, transitTo, attrs}) => transitTo(state.nextState))
-  .on('message', ['onState2'], ({state, transitTo}) => transitTo(state.nextState))
-  .create();
-
-f
-  .attrs({
-    node: 14
-  })
-  .start("state1")
-  .put("message")
