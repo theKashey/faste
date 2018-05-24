@@ -1,0 +1,12 @@
+machine:
+  node:
+    version: 8.9.1
+
+dependencies:
+  override:
+    - yarn
+
+test:
+
+  override:
+    - yarn test:ci
