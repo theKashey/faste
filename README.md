@@ -1,4 +1,17 @@
-# faste [![Build Status](https://secure.travis-ci.org/theKashey/faste.svg)](http://travis-ci.org/theKashey/faste)
+<div align="center">
+  <h1>🤖 Faste 💡</h1>
+  finite state block machine
+  <br/>
+  <img src="./assets/blocks.png" alt="memoize" height="233" align="center">
+  <br/>
+  <br/>
+  <a href="https://circleci.com/gh/theKashey/faste/tree/master">
+     <img src="https://img.shields.io/circleci/project/github/theKashey/faste/master.svg?style=flat-square)" alt="Build status">
+  </a>
+  <br/>
+  <br/>
+  <br/>  
+</div>  
 
 > no dependencies, and just 1.5kb
 
@@ -13,6 +26,9 @@ From this prospective faste is closer to RxJX.
 
 Usually "FSM" are more focused on state transitions, often even omitting any operations on message receive.
 >In the Traffic Light example it could be usefull, but in more real life examples - no.
+
+Faste is more about _when_ you will be able to do _what_. _What_ you will do, _when_ you receive event, and what you will do next.
+
 
 Keeping in mind the best practices, like KISS and DRY, it is better to invert state->message->action connection,
 as long actions is most complex part of it, and messages are usually reused across different states.
@@ -242,6 +258,15 @@ By default `@busy` will queue messages, executing them after leaving busy phase.
 If want to ignore them -  instead of `@busy`, you might use `@locked` phase, which will ignore them.
 
 PS: You probably will never need those states.
+
+# SDL and Block
+Faste was born from this. From Q.931(EDSS) state definition.
+
+How it starts. What signals it accepts. What it does next.
+
+![U17](./assets/capeu17.gif)
+
+That is quite simple diagram.
 
 # Licence
  MIT
