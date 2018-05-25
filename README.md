@@ -8,6 +8,15 @@
   <a href="https://circleci.com/gh/theKashey/faste/tree/master">
      <img src="https://img.shields.io/circleci/project/github/theKashey/faste/master.svg?style=flat-square)" alt="Build status">
   </a>
+  
+  <a href="https://codecov.io/github/thekashey/faste">
+   <img src="https://img.shields.io/codecov/c/github/thekashey/faste.svg?style=flat-square" />
+  </a>
+  
+  <a href="https://www.npmjs.com/package/faste">
+   <img src="https://img.shields.io/npm/v/faste.svg?style=flat-square" />
+  </a>
+  
   <br/>
   <br/>
   <br/>  
