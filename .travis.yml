@@ -7,3 +7,4 @@ script:
   - yarn test:ci
   - yarn build
   - yarn test:size
+  - codecov

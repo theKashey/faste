@@ -28,6 +28,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "8.0.0",
+    "codecov": "^3.0.2",
     "flow-bin": "^0.72.0",
     "size-limit": "^0.18.0",
     "ts-react-toolbox": "^0.0.46"
