@@ -3,13 +3,14 @@ export type MAGIC_PHASES = "@current" | "@busy" | "@locked"
 
 const BUSY_PHASES: MAGIC_PHASES[] = ["@busy", "@locked"];
 
-export interface InternalMachine<State, Attributes, AvalablePhases, Messages, Signals> {
+export interface InternalMachine<State, Attributes, AvailablePhases, Messages, Signals> {
   attrs: Attributes;
   state: State;
+  message?: Messages | MAGIC_EVENTS;
 
   setState(newState: Partial<State>): void;
 
-  transitTo(phase: AvalablePhases): void;
+  transitTo(phase: AvailablePhases): void;
 
   emit(message: Signals, ...args: any[]): void;
 
@@ -17,6 +18,8 @@ export interface InternalMachine<State, Attributes, AvalablePhases, Messages, Si
 }
 
 export type OnCallback<State, Attributes, AvalablePhases, Messages, Signals> = (slots: InternalMachine<State, Attributes, AvalablePhases, Messages, Signals>, ...args: any[]) => Promise<any> | void;
+
+export type AnyOnCallback = OnCallback<any, any, any, any, any>;
 
 export interface MessagePhase<Phases> {
   phases: Phases[];
@@ -43,6 +46,8 @@ export type HookCallback<Messages, State, Attributes, T = any> = {
   on: OnHookCallback<Messages, State, Attributes, T>;
   off: OffHookCallback<Messages, State, Attributes, T>;
 };
+
+export type AnyHookCallback = HookCallback<any, any, any>;
 
 export type Hooks<State, Attributes, Messages extends string> = {
   [K in Messages]?: HookCallback<Messages, State, Attributes>
@@ -87,7 +92,7 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
 
   constructor(state: FastInstanceState<State, Attributes, Phases, Messages, Signals>, handlers: FasteInstanceHooks<MessageHandlers, FasteHooks>) {
     this.state = {...state};
-    this.state.instance = this._createInstance()
+    this.state.instance = this._createInstance({});
     this.handlers = handlers;
 
     this.stateObservers = [];
@@ -131,10 +136,11 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     }
   }
 
-  private _createInstance(options?: { phase: Phases | MAGIC_PHASES }): InternalMachine<State, Attributes, Phases, Messages, Signals> {
+  private _createInstance(options: { phase?: Phases | MAGIC_PHASES, message?: Messages | MAGIC_EVENTS }): InternalMachine<State, Attributes, Phases, Messages, Signals> {
     return {
       state: this.state.state,
       attrs: this.state.attrs,
+      message: options.message,
       setState: (newState: Partial<State>) => this._setState(newState),
       transitTo: (phase: Phases | MAGIC_PHASES) => this._transitTo(phase === '@current' ? options.phase : phase),
       emit: (message: Signals, ...args: any[]) => callListeners(this.messageObservers, message, ...args),
@@ -146,7 +152,9 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     const oldHandlers = this._collectHandlers(this.state.phase);
     const newHandlers = nextPhase ? this._collectHandlers(nextPhase) : {};
 
-    const instance = this._createInstance();
+    const instance = this._createInstance({
+      phase: this.state.phase
+    });
     const h = this.handlers.hooks as any;
 
     Object.keys(newHandlers).forEach(handler => {
@@ -162,7 +170,10 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     Object.keys(oldHandlers).forEach(handler => {
       if (!newHandlers[handler] && h[handler]) {
         debug(this, 'hook-off', h[handler]);
-        h[handler].off(instance, h[handler].onValue);
+        h[handler].off({
+          ...instance,
+          message: handler
+        }, h[handler].onValue);
       }
     });
   }
@@ -188,7 +199,8 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     const phase = this.state.phase;
     if (handlers) {
       const instance = this._createInstance({
-        phase
+        phase,
+        message: event as any
       });
 
       handlers.forEach(handler => {
@@ -285,7 +297,7 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
   }
 
   instance(): InternalMachine<State, Attributes, Phases, Messages, Signals> {
-    return this._createInstance();
+    return this._createInstance({});
   }
 
   destroy(): void {
