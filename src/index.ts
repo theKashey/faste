@@ -17,7 +17,7 @@ export interface InternalMachine<State, Attributes, AvailablePhases, Messages, S
   trigger: (event: Messages, ...args: any[]) => void;
 }
 
-export type OnCallback<State, Attributes, AvalablePhases, Messages, Signals> = (slots: InternalMachine<State, Attributes, AvalablePhases, Messages, Signals>, ...args: any[]) => Promise<any> | void;
+export type OnCallback<State, Attributes, AvalablePhases, Messages, Signals> = (slots: InternalMachine<State, Attributes, AvalablePhases, Messages, Signals>, ...args: any[]) => Promise<any> | any;
 
 export type AnyOnCallback = OnCallback<any, any, any, any, any>;
 
