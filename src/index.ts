@@ -89,11 +89,13 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
   private messageObservers: ConnectCall<Signals>[];
   private messageQueue: ({ message: Messages | MAGIC_EVENTS, args: any })[];
   private callDepth: number;
+  private handlersOffValues: any;
 
   constructor(state: FastInstanceState<State, Attributes, Phases, Messages, Signals>, handlers: FasteInstanceHooks<MessageHandlers, FasteHooks>) {
     this.state = {...state};
     this.state.instance = this._createInstance({});
-    this.handlers = handlers;
+    this.handlers = {...handlers};
+    this.handlersOffValues = {};
 
     this.stateObservers = [];
     this.messageObservers = [];
@@ -160,7 +162,7 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     Object.keys(newHandlers).forEach(handler => {
       if (!oldHandlers[handler] && h[handler]) {
         debug(this, 'hook-on', h[handler]);
-        h[handler].onValue = h[handler].on({
+        this.handlersOffValues[handler] = h[handler].on({
           ...instance,
           message: handler
         });
@@ -173,7 +175,7 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
         h[handler].off({
           ...instance,
           message: handler
-        }, h[handler].onValue);
+        }, this.handlersOffValues[handler]);
       }
     });
   }
@@ -244,7 +246,7 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
   }
 
   attrs(attrs: Attributes): this {
-    this.state.attrs = Object.assign(this.state.attrs || {}, attrs);
+    this.state.attrs = Object.assign({}, this.state.attrs || {}, attrs);
     return this;
   }
 
