@@ -17,6 +17,10 @@
    <img src="https://img.shields.io/npm/v/faste.svg?style=flat-square" />
   </a>
   
+  <a href="https://greenkeeper.io/">
+   <img alt="Greenkeeper badge" src="https://badges.greenkeeper.io/theKashey/faste.svg"/>
+  </a>
+  
   <br/>
   <br/>
   <br/>  
@@ -50,6 +54,7 @@ Keep in mind - if some handler is not defined in some state, and you are sending
 > Written in TypeScript. To make things less flexible. Flow definitions as incomplete. 
 
 # Prior art
+
 This library combines ideas from [xstate](https://github.com/davidkpiano/xstate) and [redux-saga](https://github.com/redux-saga/redux-saga).
 The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
 developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
