@@ -59,6 +59,14 @@ This library combines ideas from [xstate](https://github.com/davidkpiano/xstate)
 The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
 developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
 
+# State machine
+ State machine _starts_ in one phase, calls _hooks_ for all _messages_ for the current phase,
+ then _awaits_ for a _messages_ from hooks or external customer, then
+ could _trigger_ a new message, _emit_ signal to the outer world or _change_ the current phase.
+ 
+ Faste is a black box - you can _put_ message inside, and awaits a _singnal_ it will sent outside, meanwhile
+ observing box _phase_. Black📦 == Component🎁.
+
 # API
  `faste(options)` - defines a new faste machine
  every faste instance provide next _chainable_ commands 
@@ -140,9 +148,9 @@ Each `on` or `hook` handler will receive `internalState` as a first argument, wi
 
  transitTo(phase);                // move to a new phase
 
- emit(message, ...args);          // emit Signal to connected 
+ emit(message, ...args);          // emit Signal to the outer world (connected) 
 
- trigger(event, ...args);         // trigger own message handler 
+ trigger(event, ...args);         // trigger own message handler (dispatch an internal action) 
 ``` 
  
 # Examples 
