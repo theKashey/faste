@@ -100,6 +100,8 @@ Each instance of Faste will have:
  
  - `destroy` - exits the current state, terminates all hooks, and stops machine.
  
+ - `namedBy(string)` - sets name of the instance (for debug).
+ 
 For all callbacks the first argument is `flow` instance, containing.
  - `attrs` - all the attrs, you cannot change them
  
@@ -151,6 +153,16 @@ Each `on` or `hook` handler will receive `internalState` as a first argument, wi
  emit(message, ...args);          // emit Signal to the outer world (connected) 
 
  trigger(event, ...args);         // trigger own message handler (dispatch an internal action) 
+``` 
+
+# Debug
+Debug mode is integrated into Faste.
+
+```js
+import {setFasteDebug} from 'faste'
+setFasteDebug(true);
+setFasteDebug(true);
+setFasteDebug((instance, message, args) => console.log(...));
 ``` 
  
 # Examples 

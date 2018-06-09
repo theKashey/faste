@@ -72,9 +72,21 @@ export type ConnectCall<Signals> = (event: Signals, args: any[]) => void;
 const callListeners = (listeners: ((...args: any[]) => void)[], ...args: any[]) =>
   listeners.forEach(listener => listener(...args));
 
+export type debugCallback = (instance: any, event: string, ...args: any[]) => any;
+
+let debugFlag: boolean | debugCallback = false;
+
 const debug = (instance: any, event: string, ...args: any[]) => {
-  // console.log(event, args);
+  if (debugFlag) {
+    if (typeof debugFlag === 'function') {
+      debugFlag(instance, event, ...args)
+    } else {
+      console.debug('Faste:', instance.name ? instance.name : instance, event, ...args);
+    }
+  }
 };
+
+export const setFasteDebug = (flag: debugCallback) => debugFlag = flag;
 
 export interface FastePutable<Messages> {
   put(message: Messages | MAGIC_EVENTS, ...args: any[]): this;
@@ -90,6 +102,7 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
   private messageQueue: ({ message: Messages | MAGIC_EVENTS, args: any })[];
   private callDepth: number;
   private handlersOffValues: any;
+  public name: string;
 
   constructor(state: FastInstanceState<State, Attributes, Phases, Messages, Signals>, handlers: FasteInstanceHooks<MessageHandlers, FasteHooks>) {
     this.state = {...state};
@@ -233,6 +246,10 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
       this.messageQueue = [];
       q.forEach(q => this.put(q.message, ...q.args));
     }
+  }
+
+  namedBy(n: string) {
+    this.name = n;
   }
 
   start(phase?: Phases): this {
