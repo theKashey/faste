@@ -67,6 +67,8 @@ developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 200
  Faste is a black box - you can _put_ message inside, and awaits a _singnal_ it will sent outside, meanwhile
  observing box _phase_. Black📦 == Component🎁.
 
+📖 Read an article about [FASTE, and why to use it](https://medium.com/@antonkorzunov/fasten-your-state-9fb9f9b44f30).
+
 # API
  `faste(options)` - defines a new faste machine
  every faste instance provide next _chainable_ commands 
