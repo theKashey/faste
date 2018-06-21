@@ -206,12 +206,14 @@ signalSource.start('active');
 ```js
 const state = faste() 
  .withPhases(['red', 'yellow', 'green'])
- .withMessages(['tick'])
+ .withMessages(['tick','next'])
  
- .on('next',['green'], ({transit}) => transit('yellow'))
- .on('next',['yellow'], ({transit}) => transit('red'))
- .on('next',['red'], ({transit}) => transit('green'))
+ .on('tick',['green'], ({transit}) => transit('yellow'))
+ .on('tick',['yellow'], ({transit}) => transit('red'))
+ .on('tick',['red'], ({transit}) => transit('green'))
 
+  // on 'next' trigger 'tick' for a better debugging.
+ .on('next',[], ({trigger}) => trigger('tick'))
   // and let it "tick" by it's own.
  .on('@enter',['green'], ({setState, attrs, trigger}) => setState({ interval: setInterval(() => trigger('next'), attrs.duration)}))
  .on('@leave',['red'], ({state}) => clearInterval(state.interval))
