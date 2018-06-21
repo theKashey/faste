@@ -204,13 +204,18 @@ signalSource.start('active');
 ### Traffic light
  
 ```js
-const state = faste({}) 
- .on('@enter',['green'], ({setState, attrs, trigger}) => setState({ interval: setInterval(() => trigger('next'), attrs.duration)}))
- .on('@leave',['red'], ({state}) => clearInterval(state.interval))
+const state = faste() 
+ .withPhases(['red', 'yellow', 'green'])
+ .withMessages(['tick'])
  
  .on('next',['green'], ({transit}) => transit('yellow'))
  .on('next',['yellow'], ({transit}) => transit('red'))
  .on('next',['red'], ({transit}) => transit('green'))
+
+  // and let it "tick" by it's own.
+ .on('@enter',['green'], ({setState, attrs, trigger}) => setState({ interval: setInterval(() => trigger('next'), attrs.duration)}))
+ .on('@leave',['red'], ({state}) => clearInterval(state.interval))
+ 
  
  .check();
 
