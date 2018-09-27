@@ -27,7 +27,7 @@
   "author": "Anton Korzunov (thekashey@gmail.com)",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "10.3.4",
+    "@types/node": "10.11.2",
     "codecov": "^3.0.2",
     "flow-bin": "^0.75.0",
     "size-limit": "^0.18.0",
