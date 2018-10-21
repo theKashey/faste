@@ -75,8 +75,7 @@ developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 200
  
  
  - `check()` - the final command to check state
- - `create()` - creates a machine.
- - ~~`callbag()` - returns a callbag.~~ (planned)
+ - `create()` - creates a machine (copies existing, use it instead of `new`).
  
  In development mode, and for typed languages you could use next commands
  - `withState(state)` - set a initial state (use @init hook to derive state from props).
@@ -111,7 +110,7 @@ For all callbacks the first argument is `flow` instance, containing.
   
   
  - `phase` - current phase
- - `transit` - phase change command.
+ - `transitTo` - phase change command.
  
  
  - `emit` - emits a message to the outer world
@@ -168,51 +167,105 @@ setFasteDebug((instance, message, args) => console.log(...));
 # Examples 
 
 Try online : https://codesandbox.io/s/n7kv9081xp
+
+### Using different handlers in different states
+```js
+// common code - invert the flag
+onClick = () => this.setState( state => ({ enabled: !state.enabled}));
+
+// faste - use different flags for different states
+faste()
+ .on('click', 'disabled', ({transitTo}) => transitTo('enabled'))
+ .on('click', 'enabled', ({transitTo}) => transitTo('disabled'))
+```
+
+### React to state change
+```js
+// common code - try to reverse engineer the change
+componentDidUpdate(oldProps) {
+  if (oldProps.enabled !== this.props.enabled) {
+    if (this.props.enabled) {
+      // I was enabled!
+    } else {
+      // I was disabled!
+    }  
+  }
+}
+
+// faste - use "magic" methods
+faste()
+ .on('@enter', 'disabled', () => /* i was disabled */)
+ .on('@enter', 'enabled', () => /* i was enabled */)
+ // bonus
+ .on('@leave', 'disabled', () => /* i am no more disabled */)
+ .on('@leave', 'enabled', () => /* i am no more enabled */)
+```
+
+### 
  
 ### Connected states
+https://codesandbox.io/s/5zx8zl91ll
 ```js
+// starts a timer when active
 const SignalSource = faste()
- .on('@enter',['active'], ({setState, attrs, emit}) => setState({ interval: setInterval(() => emit('message'), attrs.duration)}))
- .on('@leave',['active'], ({state}) => clearInterval(state.interval));
+  .on("@enter", ["active"], ({ setState, attrs, emit }) =>
+    setState({ interval: setInterval(() => emit("message"), attrs.duration) })
+  )
+  .on("@leave", ["active"], ({ state }) => clearInterval(state.interval));
 
+// responds to "message" by moving from tick to tock
+// emiting the current state outside
 const TickState = faste()
- .on('message', ['tick'], ({transit}) => transit('tock')
- .on('message', ['tock'], ({transit}) => transit('tick')
- .on('@leave', ({emit}, newPhase) => emit('currentState', newPhase)); 
+  // autoinit to "tick" mode
+  .on("@init", ({ transitTo }) => transitTo("tick"))
+  // message handlers
+  .on("message", ["tick"], ({ transitTo }) => transitTo("tock"))
+  .on("message", ["tock"], ({ transitTo }) => transitTo("tick"))
+  .on("@leave", ({ emit }, newPhase) => emit("currentState", newPhase));
 
+// just transfer message to attached node
+const DisplayState = faste().on(
+  "currentState",
+  ({ attrs }, message) => (attrs.node.innerHTML = message)
+);
 
-const DisplayState = faste()
- .on('display', ({attr}, message) => attrs.node.innerHTML = message);
+// create machines
+const signalSource = SignalSource.create().attrs({
+  duration: 1000
+});
+const tickState = TickState.create();
+const displayState = DisplayState.create().attrs({
+  node: document.querySelector(".display")
+});
 
-
-const signalSource = new SignalSource();
-const tickState = new TickState();
-const displayState = new DisplayState();
-
-// direct connect
+// direct connect signal source and ticker
 signalSource.connect(tickState);
 
-// functional connect
-tickState.connect(message => displayState.put('display', message));
+// "functionaly" connect tickes and display
+tickState.connect((message, payload) => displayState.put(message, payload));
 
-// RUN!
-signalSource.start('active');
+// RUN! start signal in active mode
+signalSource.start("active");
 ``` 
  
 ### Traffic light
  
 ```js
 const state = faste({}) 
+ // on "green" - start timer
  .on('@enter',['green'], ({setState, attrs, trigger}) => setState({ interval: setInterval(() => trigger('next'), attrs.duration)}))
+ // on "red" - stop timer
  .on('@leave',['red'], ({state}) => clearInterval(state.interval))
  
- .on('next',['green'], ({transit}) => transit('yellow'))
- .on('next',['yellow'], ({transit}) => transit('red'))
- .on('next',['red'], ({transit}) => transit('green'))
+ // "next" event will move light from green to red
+ .on('next',['green'], ({transitTo}) => transitTo('yellow'))
+ .on('next',['yellow'], ({transitTo}) => transitTo('red'))
+ .on('next',['red'], ({transitTo}) => transitTo('green'))
  
  .check();
 
-new state()  
+state()
+  .create() // this is actually a "fork"  
   .attrs({duration: 1000})
   .start('green');
 ```
@@ -224,9 +277,10 @@ const domHook = eventName => ({
   'on': ({attrs, trigger}) => {
     const callback = event => trigger(eventName, event);    
     attrs.node.addEventListener(eventName, callback);
+    // "hook" could return anything, callback for example
     return callback;
   },
-  'off': ({attrs}, hook) => {          
+  'off': ({attrs}, hook /* result from 'on' callback */) => {          
       attrs.node.removeEventListener(eventName, hook);
     }
 });
@@ -235,9 +289,9 @@ const state = faste({})
  .on('@enter', ['active'], ({emit}) => emit('start'))
  .on('@leave', ['active'], ({emit}) => emit('end'))
  
- .on('mousedown',['idle'], ({transit}) => transit('active'))
+ .on('mousedown',['idle'], ({transitTo}) => transitTo('active'))
  .on('mousemove',['active'], (_, event) => emit('move',event))
- .on('mouseup', ['active'], ({transit}) => transit('idle'))
+ .on('mouseup', ['active'], ({transitTo}) => transitTo('idle'))
  
  hooks({
    'mousedown': domHook('mousedown'),
@@ -247,7 +301,6 @@ const state = faste({})
  .check()
 
  .attr({node: document.body})
- .create() // just create the class here
  .start('idle');
 ```
 
@@ -257,33 +310,33 @@ Message handler doesn't have to be sync. But managing async commands could be ha
 1. Accept command only in initial state, then transit to temporal state to prevent other commands to be executes.
 ```js
 const Login = faste()
- .on('login', ['idle'], ({transit}, {userName, password}) => {
-   transit('logging-in'); // just transit to "other" state  
+ .on('login', ['idle'], ({transitTo}, {userName, password}) => {
+   transitTo('logging-in'); // just transit to "other" state  
    login(userName, password)
-       .then( () => transit('logged'))
-       .catch( () => transit('error'))
+       .then( () => transitTo('logged'))
+       .catch( () => transitTo('error'))
  });  
 ```  
 
 2. Accept command only in initial state, then transit to execution state, and do the job on state enter
 ```js
 const Login = faste()
- .on('login', ['idle'], ({transit}, data) => transit('logging', data)
- .on('@enter', ['logging'], ({transit}, {userName, password}) => {                                 
+ .on('login', ['idle'], ({transitTo}, data) => transitTo('logging', data)
+ .on('@enter', ['logging'], ({transitTo}, {userName, password}) => {                                 
   login(userName, password)
-      .then( () => transit('logged'))
-      .catch( () => transit('error'))
+      .then( () => transitTo('logged'))
+      .catch( () => transitTo('error'))
 });  
 ```  
 
 2. Always accept command, but be "busy" while doing stuff
 ```js
 const Login = faste()
- .on('login', ({transit}, {userName, password}) => {
-   transit('@busy'); // we are "busy" 
+ .on('login', ({transitTo}, {userName, password}) => {
+   transitTo('@busy'); // we are "busy" 
    return login(userName, password)
-       .then( () => transit('logged'))
-       .catch( () => transit('error'))
+       .then( () => transitTo('logged'))
+       .catch( () => transitTo('error'))
  });  
 ```  
 > handler returns Promise( could be async ) to indicate that ending in @busy state is not a mistake, and will not lead to deadlock.
