@@ -67,6 +67,8 @@ developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 200
  Faste is a black box - you can _put_ message inside, and awaits a _singnal_ it will sent outside, meanwhile
  observing box _phase_. Black📦 == Component🎁.
 
+📖 Read an article about [FASTE, and why to use it](https://medium.com/@antonkorzunov/fasten-your-state-9fb9f9b44f30).
+
 # API
  `faste(options)` - defines a new faste machine
  every faste instance provide next _chainable_ commands 
@@ -200,8 +202,6 @@ faste()
  .on('@leave', 'disabled', () => /* i am no more disabled */)
  .on('@leave', 'enabled', () => /* i am no more enabled */)
 ```
-
-### 
  
 ### Connected states
 https://codesandbox.io/s/5zx8zl91ll
@@ -251,24 +251,35 @@ signalSource.start("active");
 ### Traffic light
  
 ```js
-const state = faste({}) 
- // on "green" - start timer
- .on('@enter',['green'], ({setState, attrs, trigger}) => setState({ interval: setInterval(() => trigger('next'), attrs.duration)}))
+const state = faste() 
+ .withPhases(['red', 'yellow', 'green'])
+ .withMessages(['tick','next'])
+ 
+ .on('tick',['green'], ({transit}) => transit('yellow'))
+ .on('tick',['yellow'], ({transit}) => transit('red'))
+ .on('tick',['red'], ({transit}) => transit('green'))
+
+  // on 'next' trigger 'tick' for a better debugging.
+  // just rethrow event
+ .on('next',[], ({trigger}) => trigger('tick'))
+  
+  // on "green" - start timer
+ .on('@enter',['green'], ({setState, attrs, trigger}) => setState({ 
+    interval: setInterval(() => trigger('next'), attrs.duration)
+ }))
  // on "red" - stop timer
  .on('@leave',['red'], ({state}) => clearInterval(state.interval))
  
- // "next" event will move light from green to red
- .on('next',['green'], ({transitTo}) => transitTo('yellow'))
- .on('next',['yellow'], ({transitTo}) => transitTo('red'))
- .on('next',['red'], ({transitTo}) => transitTo('green'))
  
  .check();
 
-state()
-  .create() // this is actually a "fork"  
+state
+  .create()
   .attrs({duration: 1000})
   .start('green');
 ```
+
+Try online : https://codesandbox.io/s/n7kv9081xp
 
 ### Draggable
 
