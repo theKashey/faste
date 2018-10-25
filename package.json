@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/node": "10.3.4",
     "codecov": "^3.0.2",
-    "flow-bin": "^0.75.0",
+    "flow-bin": "^0.84.0",
     "size-limit": "^0.18.0",
     "ts-react-toolbox": "^0.1.10"
   }
