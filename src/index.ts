@@ -4,16 +4,43 @@ export type MAGIC_PHASES = "@current" | "@busy" | "@locked"
 const BUSY_PHASES: MAGIC_PHASES[] = ["@busy", "@locked"];
 
 export interface InternalMachine<State, Attributes, AvailablePhases, Messages, Signals> {
+  /**
+   * machine attributes
+   */
   attrs: Attributes;
+  /**
+   * machine state
+   */
   state: State;
+  /**
+   * current message
+   */
   message?: Messages | MAGIC_EVENTS;
 
+  /**
+   * update machine state
+   * @param newState
+   */
   setState(newState: Partial<State>): void;
 
-  transitTo(phase: AvailablePhases): void;
+  /**
+   * changes machine phase
+   * @param phase
+   */
+  transitTo(phase: AvailablePhases | MAGIC_PHASES): void;
 
+  /**
+   * sends a signal to the outer world
+   * @param message
+   * @param args
+   */
   emit(message: Signals, ...args: any[]): void;
 
+  /**
+   * sends a signal back to the machine
+   * @param event
+   * @param args
+   */
   trigger: (event: Messages, ...args: any[]) => void;
 }
 
@@ -86,6 +113,10 @@ const debug = (instance: any, event: string, ...args: any[]) => {
   }
 };
 
+/**
+ * enabled debug
+ * @param flag
+ */
 export const setFasteDebug = (flag: debugCallback) => debugFlag = flag;
 
 export interface FastePutable<Messages> {
@@ -248,10 +279,18 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     }
   }
 
+  /**
+   * sets name to a machine (debug only)
+   * @param n
+   */
   namedBy(n: string) {
     this.name = n;
   }
 
+  /**
+   * starts the machine
+   * @param phase
+   */
   start(phase?: Phases): this {
     this.messageQueue = [];
     this.callDepth = 0;
@@ -262,11 +301,20 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     return this;
   }
 
+  /**
+   * sets attributes
+   * @param attrs
+   */
   attrs(attrs: Attributes): this {
     this.state.attrs = Object.assign({}, this.state.attrs || {}, attrs);
     return this;
   }
 
+  /**
+   * put the message in
+   * @param {String} message
+   * @param {any} args
+   */
   put(message: Messages | MAGIC_EVENTS, ...args: any[]): this {
     if (this.callDepth) {
       debug(this, 'queue', message, args);
@@ -294,8 +342,10 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     return this;
   }
 
-  //connect(plug: FasteInstance<any, any, Signals, any, any, any, any> | ConnectCall<Signals>): this {
-  //
+  /**
+   * Connects one machine to another
+   * @param plug
+   */
   connect(plug: FastePutable<Signals> | ConnectCall<Signals>): this {
     if ('put' in plug) {
       this.messageObservers.push((event: Signals, ...args: any[]) => plug.put(event, ...args))
@@ -305,32 +355,59 @@ export class FasteInstance<State, Attributes, Phases, Messages, Signals, Message
     return this;
   }
 
+  /**
+   * adds change observer. Observer could not be removed.
+   * @param callback
+   */
   observe(callback: (phase: Phases) => void): this {
     this.stateObservers.push(callback);
     return this;
   }
 
-
+  /**
+   * returns the current phase
+   */
   phase(): Phases | MAGIC_PHASES {
     return this.state.phase;
   }
 
+  /**
+   * return an internal instance
+   */
   instance(): InternalMachine<State, Attributes, Phases, Messages, Signals> {
     return this._createInstance({});
   }
 
+  /**
+   * destroys the machine
+   */
   destroy(): void {
     this.__performHookOn(undefined);
     this.stateObservers = [];
   }
 };
 
+export type SomethingOf<T extends string, K extends T> = Partial<K>;
+
+export type PhaseTransition<T extends string, K> = {
+  [key in T]: K;
+}
+
+export type PhaseTransitionSetup<K extends string, T extends PhaseTransition<K, Partial<K>>> = {
+  [key in keyof T]: T[key][];
+}
+
+/**
+ * The Faste machine
+ * @name Faste
+ */
 export class Faste<State extends object = {},
   Attributes extends object = {},
   Phases extends string = any,
+  Transitions extends PhaseTransition<Phases, Partial<Phases>> = PhaseTransition<Phases, Phases>,
   Messages extends string = any,
   Signals extends string = any,
-  OnCall= OnCallback<State, Attributes, Phases, Messages, Signals>,
+  OnCall = OnCallback<State, Attributes, Phases, Messages, Signals>,
   FasteMessageHandlers = MessageHandlers<State, Attributes, Phases, Messages, OnCall>,
   FasteHooks = Hooks<State, Attributes, Phases>,
   > {
@@ -347,14 +424,31 @@ export class Faste<State extends object = {},
     this.fHooks = hooks || {} as FasteHooks;
   }
 
-  on(eventName: Messages, phases: Phases[], callback: OnCall): this;
-  on(eventName: Messages, callback: OnCall): this;
+  /**
+   * Adds event handler
+   * @param {String} eventName
+   * @param {String[]} phases
+   * @param callback
+   *
+   * @example machine.on('disable', ['enabled'], ({transitTo}) => transitTo('disabled');
+   */
+  public on<K extends Phases>(eventName: Messages, phases: K[], callback: OnCallback<State, Attributes, Transitions[K], Messages, Signals>): this;
+  // on(eventName: Messages, phases: Phases[], callback: OnCall): this;
+  /**
+   * Adds event handler
+   * @param {String} eventName
+   * @param callback
+   */
+  public on(eventName: Messages, callback: OnCall): this;
 
-  on(...args: any[]): this {
+  /**
+   * Adds event handler
+   * @param args
+   */
+  public on(...args: any[]): this {
     if (args.length == 2) {
       return this._addHandler(args[0], null, args[1])
-    }
-    else if (args.length == 3) {
+    } else if (args.length == 3) {
       return this._addHandler(args[0], args[1], args[2])
     }
     return null;
@@ -369,20 +463,42 @@ export class Faste<State extends object = {},
     return this;
   }
 
-  hooks(hooks: Hooks<State, Attributes, Messages>): this {
+  /**
+   * Adds hooks to the faste machine
+   * @param hooks
+   *
+   * @example machine.hooks({
+   *  click: {
+   *   on: onCallback,
+   *   off: offCallback,
+   * }});
+   */
+  public hooks(hooks: Hooks<State, Attributes, Messages>): this {
     Object.assign(this.fHooks, hooks);
     return this;
   }
 
-  check(): boolean {
+  /**
+   * checks that machine is build properly
+   */
+  public check(): boolean {
     return true;
   }
 
+  /**
+   * Executes callback inside faste machine, could be used to reuse logic among different machines
+   * @param {Function }swapper
+   *
+   * @example machine.scope( machine => machine.on('something');
+   */
   scope(swapper: (stateIn: this) => void): this {
     swapper(this);
     return this;
   }
 
+  /**
+   * creates a Faste Machine from a blueprint
+   */
   create(): FasteInstance<State, Attributes, Phases, Messages, Signals, MessageHandlers<State, Attributes, Phases, Messages, OnCall>, FasteHooks> {
     return new FasteInstance({
       state: this.fState,
@@ -395,29 +511,58 @@ export class Faste<State extends object = {},
     })// as any
   }
 
-  // callbag(): Callbag<any, any>;
-
-  withState<T extends object>(state?: T): Faste<T, Attributes, Phases, Messages, Signals> {
+  /**
+   * Defines the State
+   * @param state
+   */
+  withState<T extends object>(state?: T): Faste<T, Attributes, Phases, Transitions, Messages, Signals> {
     return new Faste(state, this.fAttrs, this.fHandlers, this.fHooks);
   }
 
-  withAttrs<T extends object>(attributes?: T): Faste<State, T, Phases, Messages, Signals> {
+  /**
+   * Defines the Attributes
+   * @param attributes
+   */
+  withAttrs<T extends object>(attributes?: T): Faste<State, T, Phases, Transitions, Messages, Signals> {
     return new Faste(this.fState, attributes, this.fHandlers, this.fHooks);
   }
 
-  withPhases<T extends string>(phases?: T[]): Faste<State, Attributes, T | MAGIC_PHASES, Messages, Signals> {
+  /**
+   * Defines possible Phases
+   * @param phases
+   */
+  withPhases<T extends string>(phases?: T[]): Faste<State, Attributes, T , PhaseTransition<T, T>, Messages, Signals> {
     return this as any;
   }
 
-  withMessages<T extends string>(messages?: T[]): Faste<State, Attributes, Phases, T | MAGIC_EVENTS, Signals> {
+  /**
+   * Defines possible Phases Transitions
+   * @param transitions
+   */
+  withTransitions<T extends PhaseTransition<Phases, Partial<Phases>>>(transitions: PhaseTransitionSetup<Phases, T>): Faste<State, Attributes, Phases, T, Messages, Signals> {
     return this as any;
   }
 
-  withSignals<T extends string>(signals?: T[]): Faste<State, Attributes, Phases, Messages, T> {
+  /**
+   * Defines possible "in" events
+   * @param messages
+   */
+  withMessages<T extends string>(messages?: T[]): Faste<State, Attributes, Phases, Transitions, T | MAGIC_EVENTS, Signals> {
+    return this as any;
+  }
+
+  /**
+   * Defines possible "out" events
+   * @param signals
+   */
+  withSignals<T extends string>(signals?: T[]): Faste<State, Attributes, Phases, Transitions, Messages, T> {
     return this as any;
   }
 }
 
+/**
+ * Creates a faste machine
+ */
 export function faste(): Faste {
   return new Faste();
 }

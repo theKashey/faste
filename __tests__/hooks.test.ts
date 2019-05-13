@@ -53,6 +53,7 @@ describe('Faste hooks', () => {
     let tockHandler = false;
 
     const light = faste()
+      // .withPhases(['green','red','yellow'])
       .on('@enter', ['red'], ({transitTo}) => transitTo('yellow'))
       .on('tock', ['yellow'], ({transitTo}) => transitTo('green'))
 

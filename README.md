@@ -2,7 +2,7 @@
   <h1>🤖 Faste 💡</h1>
   finite state block machine
   <br/>
-  <img src="./assets/blocks.png" alt="memoize" height="233" align="center">
+  <img src="./assets/blocks.png" alt="faste" height="233" align="center">
   <br/>
   <br/>
   <a href="https://circleci.com/gh/theKashey/faste/tree/master">
@@ -34,11 +34,11 @@ SDL defines state as a set of messages, it should react on, and the actions bene
 Once `state` receives a `message` it executes an `action`, which could perform calculations and/or change the
 current state.
 
-> The goal is not to __change the state__, but - __execute bound action__.
+> The goal is not to __change the state__, but - __execute a bound action__.
 From this prospective faste is closer to RxJX.
 
 Usually "FSM" are more focused on state transitions, often even omitting any operations on message receive.
->In the Traffic Light example it could be usefull, but in more real life examples - no.
+>In the Traffic Light example it could be useful, but in more real life examples - no.
 
 Faste is more about _when_ you will be able to do _what_. _What_ you will do, _when_ you receive event, and what you will do next.
 
@@ -67,37 +67,60 @@ developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 200
  Faste is a black box - you can _put_ message inside, and awaits a _singnal_ it will sent outside, meanwhile
  observing box _phase_. Black📦 == Component🎁.
 
-📖 Read an article about [FASTE, and why to use it](https://medium.com/@antonkorzunov/fasten-your-state-9fb9f9b44f30).
+📖 Read an article about [FASTE, and when to use it](https://medium.com/@antonkorzunov/fasten-your-state-9fb9f9b44f30).
+
+# Example
+
+```js
+const light = faste()
+    // define possible "phases" of a traffic light  
+    .withPhases(['red', 'yellow', 'green'])
+    // define possible transitions from one phase to another
+    .withTransitions({
+      green: ['yellow'],
+      yellow: ['red'],
+      red: ['green'],
+    })
+    // define possible events for a machine
+    .withMessages(['switch'])
+    .on('switch', ['green'], ({transitTo}) => transitTo('yellow'))
+    .on('switch', ['yellow'], ({transitTo}) => transitTo('red'))
+    .on('switch', ['red'], ({transitTo}) => transitTo('green'))
+    // the following line would throw an error at _compile time_
+    .on('tick', ['green'], ({transitTo}) => transitTo('red')) // this transition is blocked  
+```    
 
 # API
+
+## Machine blueprint 
  `faste(options)` - defines a new faste machine
  every faste instance provide next _chainable_ commands 
  - `on(eventName, [phases], callback)` - set a hook `callback` for `eventName` message in states `states`.
  - `hooks(hooks)` - set a hook when some message begins, or ends its presence.
- 
+   
+ In development mode, and for typed languages you could use next commands
+ - `withState(state)` - set a initial state (use @init hook to derive state from props).
+ - `withPhases(phases)` - limit phases to provided set.
+ - `withTransitions([phases]:[phases])` - limit phase transitions
+ - `withMessages(messages)` - limit messages to provided set.
+ - `withAttrs(attributes)` - limit attributes to provided set.
+ - `withSignals(signals)` - limit signals to provided set.
  
  - `check()` - the final command to check state
  - `create()` - creates a machine (copies existing, use it instead of `new`).
  
- In development mode, and for typed languages you could use next commands
- - `withState(state)` - set a initial state (use @init hook to derive state from props).
- - `withPhases(phases)` - limit phases to provided set.
- - `withMessages(messages)` - limit messages to provided set.
- - `withAttrs(attributes)` - limit attributes to provided set.
- - `withSignals(singnals)` - limit signals to provided set.
+ All methods returns a `faste` constructor itself.
  
- All methods returns a `faste` constructor;
+## Machine instance 
  
 Each instance of Faste will have:
  - `attrs(attrs)` - set attributes.  
- - `put` - put message it
+ - `put` - put message in
  - `connect` - connects output to the destination
  - `observe` - observes phase changes
 
-
  - `phase` - returns the current phase
  - `instance` - returns the current internal state.
- 
  
  - `destroy` - exits the current state, terminates all hooks, and stops machine.
  

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "noImplicitAny": true,
-    "removeComments": true,
+    "removeComments": false,
+    "declaration": true,
     "target": "es5",
     "lib": [
       "dom",
