@@ -1,6 +1,6 @@
 {
   "name": "faste",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Block-based, Finite State Machine, made simple",
   "main": "dist/es5/index.js",
   "types": "dist/es5/index.d.ts",
