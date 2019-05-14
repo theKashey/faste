@@ -45,5 +45,8 @@
   "keywords": [
     "state machine",
     "state management"
-  ]
+  ],
+  "dependencies": {
+    "tslib": "^1.9.3"
+  }
 }

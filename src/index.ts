@@ -34,6 +34,7 @@ export interface InternalMachine<
    * @param newState
    */
   setState(newState: Partial<State>): void;
+
   setState(cb: (oldState: State) => Partial<State>): void;
 
   /**
@@ -204,6 +205,7 @@ export class FasteInstance<
   private messageQueue: ({ message: Messages | MAGIC_EVENTS; args: any })[];
   private callDepth: number;
   private handlersOffValues: any;
+  private _started: boolean = false;
   public name: string;
 
   constructor(
@@ -217,8 +219,6 @@ export class FasteInstance<
 
     this.stateObservers = [];
     this.messageObservers = [];
-
-    this.start();
   }
 
   private _collectHandlers(
@@ -273,9 +273,15 @@ export class FasteInstance<
         return false;
       }
 
-      this.__put('@leave', phase);
+      if (oldPhase) {
+        this.__put('@leave', phase);
+      }
       this.__performHookOn(phase);
       this.state.phase = phase;
+      if (!this._started) {
+        this.__put('@init');
+        this._started = true;
+      }
       this.__put('@enter', oldPhase);
 
       callListeners(this.stateObservers, phase);
@@ -421,11 +427,16 @@ export class FasteInstance<
   start(phase?: Phases): this {
     this.messageQueue = [];
     this.callDepth = 0;
-    this.__put('@init');
+    this._started = false;
     if (phase) {
-      if (!this.state.instance.transitTo(phase)) {
-        throw new Error('Faste machine initialization failed - phase was rejected');
+      if (!this._transitTo(phase)) {
+        throw new Error(
+          'Faste machine initialization failed - phase was rejected'
+        );
       }
+    } else {
+      this.__put('@init');
+      this._started = true;
     }
     return this;
   }

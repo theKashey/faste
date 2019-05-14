@@ -120,7 +120,8 @@ describe('Faste simple', () => {
 
       .on('tock', ({emit}) => emit('tick'))
 
-      .create();
+      .create()
+      .start();
 
     control.connect(light);
 

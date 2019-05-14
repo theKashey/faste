@@ -4,7 +4,8 @@ describe('Faste phone', () => {
   it('call me', () => {
     const buttons = faste()
       .on('press', ({emit}, digit: string) => emit('DTMF-' + digit))
-      .create();
+      .create()
+      .start();
 
     const collector = faste()
       .withState({
@@ -26,7 +27,8 @@ describe('Faste phone', () => {
         }
         emit('digit', state.lastNumber);
       })
-      .create();
+      .create()
+      .start();
 
     const phone = faste()
       .withPhases(['idle', 'calling', 'incall', 'end'])
@@ -38,7 +40,8 @@ describe('Faste phone', () => {
       })
       .on('digit', ['incall'], ({emit}, digit) => emit('DTMF', digit))
       .on('hang', ({transitTo}) => transitTo('idle'))
-      .create();
+      .create()
+      .start();
 
     buttons.connect(collector);
     collector.connect(phone);

@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🤖 Faste 💡</h1>
-  finite state block machine
+  TypeScript centric finite state <i>block</i> machine
   <br/>
   <img src="./assets/blocks.png" alt="faste" height="233" align="center">
   <br/>
@@ -38,13 +38,13 @@ current state.
 From this prospective faste is closer to RxJX.
 
 Usually "FSM" are more focused on state transitions, often even omitting any operations on message receive.
->In the Traffic Light example it could be useful, but in more real life examples - no.
+In the Traffic Light example it could be useful, but in more real life examples - probably not.
 
-Faste is more about _when_ you will be able to do _what_. _What_ you will do, _when_ you receive event, and what you will do next.
+Faste is more about _when_ you will be able to do _what_. __What__ you will do, __when__ you receive event, and what you will do next.
 
 
 Keeping in mind the best practices, like KISS and DRY, it is better to invert state->message->action connection,
-as long actions is most complex part of it, and messages are usually reused across different states.
+as long as actions are most complex part of it, and messages are usually reused across different states.
 
 And, make things more common we will call "state" as a "phase", and "state" will be for "internal state".
 
@@ -53,19 +53,13 @@ Keep in mind - if some handler is not defined in some state, and you are sending
 
 > Written in TypeScript. To make things less flexible. Flow definitions as incomplete. 
 
-# Prior art
-
-This library combines ideas from [xstate](https://github.com/davidkpiano/xstate) and [redux-saga](https://github.com/redux-saga/redux-saga).
-The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
-developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
-
 # State machine
  State machine _starts_ in one phase, calls _hooks_ for all _messages_ for the current phase,
  then _awaits_ for a _messages_ from hooks or external customer, then
  could _trigger_ a new message, _emit_ signal to the outer world or _change_ the current phase.
  
- Faste is a black box - you can _put_ message inside, and awaits a _singnal_ it will sent outside, meanwhile
- observing box _phase_. Black📦 == Component🎁.
+ Faste is a black box - you can _put_ message inside, and wait for a _signal_ it will sent outside, meanwhile
+ observing a box _phase_. Black📦 == Component🎁.
 
 📖 Read an article about [FASTE, and when to use it](https://medium.com/@antonkorzunov/fasten-your-state-9fb9f9b44f30).
 
@@ -87,7 +81,7 @@ const light = faste()
     .on('switch', ['yellow'], ({transitTo}) => transitTo('red'))
     .on('switch', ['red'], ({transitTo}) => transitTo('green'))
     // the following line would throw an error at _compile time_
-    .on('tick', ['green'], ({transitTo}) => transitTo('red')) // this transition is blocked
+    .on('switch', ['green'], ({transitTo}) => transitTo('red')) // this transition is blocked
     
     // block transition TO green if any pedestrian is on the road
     .guard(['green'], () => noPedestriansOnTheRoad)
@@ -175,7 +169,6 @@ Hook took a place when message starts or ends it existance, ie entering or leavi
 ## InternalState
 Each `on` or `hook` handler will receive `internalState` as a first argument, with following shape
 ```js
-{
  attrs: { ...AttributesYouSet };  // attributes
  state: { ..CurrentState };       // state
 
@@ -397,6 +390,12 @@ How it starts. What signals it accepts. What it does next.
 ![U17](./assets/capeu17.gif)
 
 That is quite simple diagram.
+
+# Prior art
+
+This library combines ideas from [xstate](https://github.com/davidkpiano/xstate) and [redux-saga](https://github.com/redux-saga/redux-saga).
+The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
+developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
 
 # Licence
  MIT
