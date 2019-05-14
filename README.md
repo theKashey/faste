@@ -26,7 +26,7 @@
   <br/>  
 </div>  
 
-> no dependencies, and just 1.5kb
+> no dependencies, less than 2kb
 
 This is a Finite State Machine from SDL([Specification and Description Language](https://en.wikipedia.org/wiki/Specification_and_Description_Language)) prospective.
 SDL defines state as a set of messages, it should react on, and the actions beneath.
@@ -87,8 +87,14 @@ const light = faste()
     .on('switch', ['yellow'], ({transitTo}) => transitTo('red'))
     .on('switch', ['red'], ({transitTo}) => transitTo('green'))
     // the following line would throw an error at _compile time_
-    .on('tick', ['green'], ({transitTo}) => transitTo('red')) // this transition is blocked  
-```    
+    .on('tick', ['green'], ({transitTo}) => transitTo('red')) // this transition is blocked
+    
+    // block transition TO green if any pedestrian is on the road
+    .guard(['green'], () => noPedestriansOnTheRoad)
+    // block transition FROM red if any pedestrian is on the road 
+    .trap(['red'], () => !noPedestriansOnTheRoad)  
+    // PS: noPedestriansOnTheRoad could be read from attr, passed from a higher state machine. 
+```
 
 # API
 
@@ -97,6 +103,9 @@ const light = faste()
  every faste instance provide next _chainable_ commands 
  - `on(eventName, [phases], callback)` - set a hook `callback` for `eventName` message in states `states`.
  - `hooks(hooks)` - set a hook when some message begins, or ends its presence.
+   
+ - `guard(phases, callback)` - add a transition guard, prevention transition to the phase
+ - `trap(phases, callback)` - add a transition guard, prevention transition from the phase   
    
  In development mode, and for typed languages you could use next commands
  - `withState(state)` - set a initial state (use @init hook to derive state from props).
