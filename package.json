@@ -37,7 +37,7 @@
     "codecov": "^3.0.2",
     "flow-bin": "^0.75.0",
     "size-limit": "^1.3.2",
-    "ts-react-toolbox": "^0.2.2"
+    "ts-react-toolbox": "^0.2.18"
   },
   "engines": {
     "node": ">=8.5.0"
