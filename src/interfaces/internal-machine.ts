@@ -1,6 +1,16 @@
+import { CallSignature, ExtractSignature } from './signatures';
 import { MAGIC_EVENTS, MAGIC_PHASES } from '../types';
 
-export type InternalMachine<State, Attributes, AvailablePhases, Messages, Signals, Timers extends string> = Readonly<{
+export type InternalMachine<
+  State,
+  Attributes,
+  AvailablePhases,
+  Messages extends string,
+  Signals extends string,
+  Timers extends string,
+  MessageSignatures extends CallSignature<Messages>,
+  SignalSignatures extends CallSignature<Signals>
+> = Readonly<{
   /**
    * machine attributes
    */
@@ -34,14 +44,14 @@ export type InternalMachine<State, Attributes, AvailablePhases, Messages, Signal
    * @param message
    * @param args
    */
-  emit(message: Signals, ...args: any[]): void;
+  emit<Signal extends Signals>(message: Signals, ...args: ExtractSignature<SignalSignatures, Signal>): void;
 
   /**
    * sends a signal back to the machine
    * @param event
    * @param args
    */
-  trigger: (event: Messages, ...args: any[]) => void;
+  trigger<Message extends Messages>(message: Messages, ...args: ExtractSignature<MessageSignatures, Messages>): void;
 
   /**
    * Starts timer

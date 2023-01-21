@@ -1,22 +1,24 @@
 import { InternalMachine } from './internal-machine';
 
-export type HookArgument<Messages, State, Attributes, Timers extends string> = InternalMachine<
+export type HookArgument<Messages extends string, State, Attributes, Timers extends string> = InternalMachine<
   State,
   Attributes,
   never,
   Messages,
   never,
-  Timers
+  Timers,
+  never,
+  never
 > & { message: Messages };
-export type OnHookCallback<Messages, State, Attributes, Timers extends string, T> = (
+export type OnHookCallback<Messages extends string, State, Attributes, Timers extends string, T> = (
   arg: HookArgument<Messages, State, Attributes, Timers>
 ) => T;
-export type OffHookCallback<Messages, State, Attributes, Timers extends string, T> = (
+export type OffHookCallback<Messages extends string, State, Attributes, Timers extends string, T> = (
   arg: HookArgument<Messages, State, Attributes, Timers>,
   hookInfo: T
 ) => void;
 
-export type HookCallback<Messages, State, Attributes, Timers extends string, T = unknown> = {
+export type HookCallback<Messages extends string, State, Attributes, Timers extends string, T = unknown> = {
   on?: OnHookCallback<Messages, State, Attributes, Timers, T>;
   off?: OffHookCallback<Messages, State, Attributes, Timers, T>;
 };

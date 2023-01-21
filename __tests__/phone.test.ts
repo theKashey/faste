@@ -7,7 +7,10 @@ describe('Faste phone', () => {
     const buttons = faste()
       .withMessages(['press'])
       .withSignals<`DTMF-${DTMF_CHAR}`>()
-      .on('press', ({ emit }, digit: DTMF_CHAR) => emit(`DTMF-${digit}`))
+      .withMessageArguments<{
+        press: [digit: DTMF_CHAR];
+      }>()
+      .on('press', ({ emit }, digit) => emit(`DTMF-${digit}`))
       .create()
       .start();
 
@@ -45,6 +48,10 @@ describe('Faste phone', () => {
       .withMessages(['pickup', 'call', 'digit', 'hang'])
       .withSignals(['DTMF'])
       .withPhases(['idle', 'calling', 'incall', 'end'])
+      .withMessageArguments<{
+        call: [number: number];
+        digit: [char: string];
+      }>()
       .withState<{ calledNumber: unknown | string }>({ calledNumber: undefined })
       .on('@init', ({ transitTo }) => transitTo('idle'))
       .on('pickup', ['idle'], ({ transitTo }) => transitTo('calling'))
@@ -64,7 +71,7 @@ describe('Faste phone', () => {
     phone.observe(spy);
 
     const callANumber = (number: string) => {
-      number.split('').forEach((c) => buttons.put('press', c));
+      number.split('').forEach((c) => buttons.put('press', c as DTMF_CHAR));
     };
 
     callANumber('555-55-55');

@@ -6,9 +6,11 @@ describe('Faste busy', () => {
       .withMessages(['tick', 'observe'])
       .withPhases(['idle'])
       .withState({ counter: 0 })
-
+      .withMessageArguments<{
+        observe: [observer: Promise<void>];
+      }>()
       .on('tick', ({ setState, state }) => setState({ counter: state.counter + 1 }))
-      .on('observe', async ({ transitTo }, observer: Promise<any>) => {
+      .on('observe', async ({ transitTo }, observer) => {
         transitTo('@busy');
         observer.then(() => transitTo('@current'));
       })
@@ -40,9 +42,11 @@ describe('Faste busy', () => {
       .withMessages(['tick', 'observe'])
       .withState({ counter: 0 })
       .withPhases(['idle'])
-
+      .withMessageArguments<{
+        observe: [observer: Promise<void>];
+      }>()
       .on('tick', ({ setState, state }) => setState({ counter: state.counter + 1 }))
-      .on('observe', async ({ transitTo }, observer: Promise<any>) => {
+      .on('observe', async ({ transitTo }, observer) => {
         transitTo('@locked');
         observer.then(() => transitTo('@current'));
       })

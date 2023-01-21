@@ -4,6 +4,7 @@ import { isThenable } from './helpers/thenable';
 import { Guards } from './interfaces/guards';
 import { InternalMachine } from './interfaces/internal-machine';
 import { MessageHandler, MessagePhase } from './interfaces/messages';
+import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
 import { MAGIC_EVENTS, MAGIC_PHASES } from './types';
 
 type ConnectCall<Signals> = (event: Signals, ...args: any[]) => void;
@@ -16,11 +17,18 @@ export type FasteInstanceHooks<MessageHandlers, FasteHooks, FasteGuards> = {
   guards: FasteGuards;
 };
 
-export type FastInstanceState<State, Attributes, Phases, Messages, Signals, Timers extends string> = {
+export type FastInstanceState<
+  State,
+  Attributes,
+  Phases,
+  Messages extends string,
+  Signals extends string,
+  Timers extends string
+> = {
   state: State;
   attrs: Attributes;
   phase?: Phases | MAGIC_PHASES;
-  instance?: InternalMachine<State, Attributes, Phases, Messages, Signals, Timers>;
+  instance?: InternalMachine<State, Attributes, Phases, Messages, Signals, Timers, never, never>;
   timers: Record<Timers, number>;
 };
 
@@ -32,12 +40,14 @@ export class FasteInstance<
   State,
   Attributes,
   Phases,
-  Messages,
-  Signals,
+  Messages extends string,
+  Signals extends string,
   MessageHandlers,
   FasteHooks,
   FasteGuards extends Guards<any, any, any>,
-  Timers extends string
+  Timers extends string,
+  MessageSignatures extends CallSignature<Messages> = DefaultSignatures,
+  SignalSignatures extends CallSignature<Signals> = CallSignature<Signals>
 > {
   private state: FastInstanceState<State, Attributes, Phases, Messages, Signals, Timers>;
 
@@ -80,6 +90,7 @@ export class FasteInstance<
   private _setState(newState: Partial<State>) {
     const oldState = this.state.state;
     this.state.state = Object.assign({}, oldState, newState);
+    // @ts-expect-error
     this.put('@change', oldState);
   }
 
@@ -138,17 +149,17 @@ export class FasteInstance<
   private _createInstance(options: {
     phase?: Phases | MAGIC_PHASES;
     message?: Messages | MAGIC_EVENTS;
-  }): InternalMachine<State, Attributes, Phases, Messages, Signals, Timers> {
+  }): InternalMachine<State, Attributes, Phases, Messages, Signals, Timers, MessageSignatures, SignalSignatures> {
     return {
       phase: this.state.phase,
       state: this.state.state,
       attrs: this.state.attrs,
       message: options.message,
-      setState: (newState: Partial<State> | ((state: State) => Partial<State>)) =>
+      setState: (newState) =>
         typeof newState === 'function' ? this._setState(newState(this.state.state)) : this._setState(newState),
-      transitTo: (phase: Phases | MAGIC_PHASES) => this._transitTo(phase === '@current' ? options.phase : phase),
-      emit: (message: Signals, ...args: any[]) => callListeners(this.messageObservers, message, ...args),
-      trigger: (event: Messages, ...args: any[]) => this.put(event, ...args),
+      transitTo: (phase) => this._transitTo(phase === '@current' ? options.phase : phase),
+      emit: (message, ...args) => callListeners(this.messageObservers, message, ...args),
+      trigger: (event, ...args) => this.put(event, ...args),
       startTimer: (timerName) => {
         if (!this.timers[timerName]) {
           if (!(timerName in this.state.timers)) {
@@ -157,6 +168,7 @@ export class FasteInstance<
 
           this.timers[timerName] = +setTimeout(() => {
             this.timers[timerName] = undefined;
+            // @ts-expect-error
             this.put(`on_${timerName}` as any);
           }, this.state.timers[timerName]);
         }
@@ -330,7 +342,10 @@ export class FasteInstance<
    * @param {String} message
    * @param {any} args
    */
-  put(message: Messages | MAGIC_EVENTS, ...args: any[]): this {
+  put<Message extends Messages | MAGIC_EVENTS>(
+    message: Message,
+    ...args: ExtractSignature<MessageSignatures, Message>
+  ): this {
     if (this.callDepth) {
       debug(this, 'queue', message, args);
       this.messageQueue.push({ message, args });
@@ -393,7 +408,16 @@ export class FasteInstance<
   /**
    * return an internal instance
    */
-  instance(): InternalMachine<State, Attributes, Phases, Messages, Signals, Timers> {
+  instance(): InternalMachine<
+    State,
+    Attributes,
+    Phases,
+    Messages,
+    Signals,
+    Timers,
+    MessageSignatures,
+    SignalSignatures
+  > {
     return this._createInstance({});
   }
 

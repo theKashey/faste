@@ -3,6 +3,7 @@ import { OnCallback } from './interfaces/callbacks';
 import { GuardCallback, Guards } from './interfaces/guards';
 import { Hooks } from './interfaces/hooks';
 import { MessageHandlers } from './interfaces/messages';
+import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
 import { MAGIC_EVENTS } from './types';
 
 export type PhaseTransition<T extends string, K> = { [key in T]: K };
@@ -25,8 +26,10 @@ export class Faste<
   Messages extends string = MAGIC_EVENTS,
   Signals extends string = never,
   Timers extends string = never,
+  MessageSignatures extends CallSignature<Messages | MAGIC_EVENTS> = DefaultSignatures,
+  SignalsSignatures extends CallSignature<Signals> = CallSignature<Signals>,
   FasteHooks = Hooks<State, Attributes, Phases, Timers>,
-  OnCall = OnCallback<State, Attributes, Phases, Messages, Signals, Timers>,
+  OnCall = OnCallback<State, Attributes, Phases, Messages, Signals, Timers, any[]>,
   FasteMessageHandlers = MessageHandlers<State, Attributes, Phases, Messages, OnCall>
 > {
   private fState: State;
@@ -72,18 +75,36 @@ export class Faste<
    *
    * @example machine.on('disable', ['enabled'], ({transitTo}) => transitTo('disabled');
    */
-  public on<K extends Phases>(
-    eventName: Messages,
+  public on<Message extends Messages, K extends Phases>(
+    eventName: Message,
     phases: K[],
-    callback: OnCallback<State, Attributes, Transitions[K], Messages, Signals, Timers>
+    callback: OnCallback<
+      State,
+      Attributes,
+      Transitions[K],
+      Messages,
+      Signals,
+      Timers,
+      ExtractSignature<MessageSignatures, Message>
+    >
   ): this;
-  // on(eventName: Messages, phases: Phases[], callback: OnCall): this;
   /**
    * Adds event handler
    * @param {String} eventName
    * @param callback
    */
-  public on(eventName: Messages, callback: OnCall): this;
+  public on<Message extends Messages>(
+    eventName: Message,
+    callback: OnCallback<
+      State,
+      Attributes,
+      Phases,
+      Messages,
+      Signals,
+      Timers,
+      ExtractSignature<MessageSignatures, Message>
+    >
+  ): this;
 
   /**
    * Adds event handler
@@ -179,7 +200,9 @@ export class Faste<
     MessageHandlers<State, Attributes, Phases, Messages, OnCall>,
     FasteHooks,
     Guards<State, Phases, Attributes>,
-    Timers
+    Timers,
+    MessageSignatures,
+    SignalsSignatures
   > {
     return new FasteInstance(
       {
@@ -201,7 +224,9 @@ export class Faste<
    * Defines the State
    * @param state
    */
-  withState<T extends object>(state?: T): Faste<T, Attributes, Phases, Transitions, Messages, Signals> {
+  withState<T extends object>(
+    state?: T
+  ): Faste<T, Attributes, Phases, Transitions, Messages, Signals, Timers, MessageSignatures, SignalsSignatures> {
     return this._alter({ state });
   }
 
@@ -209,7 +234,9 @@ export class Faste<
    * Defines the Attributes
    * @param attributes
    */
-  withAttrs<T extends object>(attributes?: T): Faste<State, T, Phases, Transitions, Messages, Signals> {
+  withAttrs<T extends object>(
+    attributes?: T
+  ): Faste<State, T, Phases, Transitions, Messages, Signals, Timers, MessageSignatures, SignalsSignatures> {
     return this._alter({ attrs: attributes });
   }
 
@@ -217,7 +244,19 @@ export class Faste<
    * Defines possible Phases
    * @param phases
    */
-  withPhases<T extends string>(phases?: T[]): Faste<State, Attributes, T, PhaseTransition<T, T>, Messages, Signals> {
+  withPhases<T extends string>(
+    phases?: T[]
+  ): Faste<
+    State,
+    Attributes,
+    T,
+    PhaseTransition<T, T>,
+    Messages,
+    Signals,
+    Timers,
+    MessageSignatures,
+    SignalsSignatures
+  > {
     return this._alter({});
   }
 
@@ -227,7 +266,7 @@ export class Faste<
    */
   withTransitions<T extends PhaseTransition<Phases, Partial<Phases>>>(
     transitions: PhaseTransitionSetup<Phases, T>
-  ): Faste<State, Attributes, Phases, T, Messages, Signals> {
+  ): Faste<State, Attributes, Phases, T, Messages, Signals, Timers, MessageSignatures, SignalsSignatures> {
     return this._alter({});
   }
 
@@ -237,7 +276,17 @@ export class Faste<
    */
   withMessages<T extends string>(
     messages?: T[]
-  ): Faste<State, Attributes, Phases, Transitions, T | MAGIC_EVENTS, Signals> {
+  ): Faste<
+    State,
+    Attributes,
+    Phases,
+    Transitions,
+    T | MAGIC_EVENTS,
+    Signals,
+    Timers,
+    MessageSignatures,
+    SignalsSignatures
+  > {
     return this._alter({});
   }
 
@@ -245,13 +294,52 @@ export class Faste<
    * Defines possible "out" events
    * @param signals
    */
-  withSignals<T extends string>(signals?: T[]): Faste<State, Attributes, Phases, Transitions, Messages, T> {
+  withSignals<T extends string>(
+    signals?: T[]
+  ): Faste<State, Attributes, Phases, Transitions, Messages, T, Timers, MessageSignatures, SignalsSignatures> {
     return this._alter({});
   }
 
   withTimers<T extends string>(
     timers: Record<T, number>
-  ): Faste<State, Attributes, Phases, Transitions, Messages | `on_${T}`, Signals, T> {
+  ): Faste<
+    State,
+    Attributes,
+    Phases,
+    Transitions,
+    Messages | `on_${T}`,
+    Signals,
+    T,
+    MessageSignatures,
+    SignalsSignatures
+  > {
     return this._alter({ timers });
+  }
+
+  withMessageArguments<Signature extends CallSignature<Messages>>(): Faste<
+    State,
+    Attributes,
+    Phases,
+    Transitions,
+    Messages,
+    Signals,
+    Timers,
+    Signature | MessageSignatures
+  > {
+    return this._alter({});
+  }
+
+  withSignalArguments<Signature extends CallSignature<Signals>>(): Faste<
+    State,
+    Attributes,
+    Phases,
+    Transitions,
+    Messages,
+    Signals,
+    Timers,
+    MessageSignatures,
+    Signature
+  > {
+    return this._alter({});
   }
 }

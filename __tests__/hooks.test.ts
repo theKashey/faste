@@ -2,7 +2,7 @@ import { faste } from '../src';
 
 describe('Faste hooks', () => {
   it('simple light control', () => {
-    let tockHandler: (a: string) => void = undefined;
+    let tockHandler: (a: any) => void = undefined;
 
     const light = faste()
       .withPhases(['red', 'yellow', 'green'])

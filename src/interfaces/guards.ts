@@ -1,10 +1,12 @@
 import { InternalMachine } from './internal-machine';
 
-export type GuardArgument<Messages, State, Attributes> = InternalMachine<
+export type GuardArgument<Messages extends string, State, Attributes> = InternalMachine<
   State,
   Attributes,
   never,
   Messages,
+  never,
+  never,
   never,
   never
 > & { message: Messages };
