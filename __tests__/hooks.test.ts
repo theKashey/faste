@@ -1,26 +1,26 @@
-import {faste} from "../src";
+import { faste } from '../src';
 
 describe('Faste hooks', () => {
   it('simple light control', () => {
-
     let tockHandler: (a: string) => void = undefined;
 
     const light = faste()
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick', 'tock'])
 
-      .on('tick', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('tick', ['yellow'], ({transitTo}) => transitTo('green'))
-      .on('tock', ['yellow'], ({transitTo}) => transitTo('green'))
-      .on('tick', ['green'], ({transitTo}) => transitTo('red'))
+      .on('tick', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('tick', ['yellow'], ({ transitTo }) => transitTo('green'))
+      .on('tock', ['yellow'], ({ transitTo }) => transitTo('green'))
+      .on('tick', ['green'], ({ transitTo }) => transitTo('red'))
 
       .hooks({
-        'tock': {
+        tock: {
           on: (st): number => {
             if (st.message === 'tock') {
               tockHandler = st.trigger;
             }
-            return 42
+
+            return 42;
           },
           off: (st, magic) => {
             if (st.message === 'tock') {
@@ -28,8 +28,8 @@ describe('Faste hooks', () => {
                 tockHandler = undefined;
               }
             }
-          }
-        }
+          },
+        },
       })
 
       .create();
@@ -49,23 +49,23 @@ describe('Faste hooks', () => {
   });
 
   it('simple light control', () => {
-
     let tockHandler = false;
 
     const light = faste()
-      // .withPhases(['green','red','yellow'])
-      .on('@enter', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('tock', ['yellow'], ({transitTo}) => transitTo('green'))
+      .withMessages(['tick', 'tock'])
+      .withPhases(['green', 'red', 'yellow'])
+      .on('@enter', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('tock', ['yellow'], ({ transitTo }) => transitTo('green'))
 
       .hooks({
-        'tock': {
+        tock: {
           on: () => {
-            tockHandler = true
+            tockHandler = true;
           },
           off: () => {
             tockHandler = false;
-          }
-        }
+          },
+        },
       })
 
       .create();

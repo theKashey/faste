@@ -1,6 +1,6 @@
 [
   {
-    path: "dist/es2015/index.js",
-    limit: "1.8 KB"
+    "path": "dist/es2015/index.js",
+    "limit": "2.2 KB"
   }
 ]

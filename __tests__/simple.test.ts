@@ -1,4 +1,4 @@
-import {faste} from "../src";
+import { faste } from '../src';
 
 describe('Faste simple', () => {
   it('simple light control', () => {
@@ -6,9 +6,9 @@ describe('Faste simple', () => {
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
 
-      .on('tick', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('tick', ['yellow'], ({transitTo}) => transitTo('green'))
-      .on('tick', ['green'], ({transitTo}) => transitTo('red'))
+      .on('tick', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('tick', ['yellow'], ({ transitTo }) => transitTo('green'))
+      .on('tick', ['green'], ({ transitTo }) => transitTo('red'))
 
       .create();
 
@@ -24,16 +24,16 @@ describe('Faste simple', () => {
     const light = faste()
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
-      .withState({direction: 1})
+      .withState({ direction: 1 })
 
-      .on('tick', ['red'], ({transitTo, setState}) => {
-        setState({direction: 1});
-        transitTo('yellow')
+      .on('tick', ['red'], ({ transitTo, setState }) => {
+        setState({ direction: 1 });
+        transitTo('yellow');
       })
-      .on('tick', ['yellow'], ({transitTo, state}) => transitTo(state.direction ? 'green' : 'red'))
-      .on('tick', ['green'], ({transitTo, setState}) => {
-        setState({direction: 0});
-        transitTo('yellow')
+      .on('tick', ['yellow'], ({ transitTo, state }) => transitTo(state.direction ? 'green' : 'red'))
+      .on('tick', ['green'], ({ transitTo, setState }) => {
+        setState({ direction: 0 });
+        transitTo('yellow');
       })
 
       .create();
@@ -47,17 +47,17 @@ describe('Faste simple', () => {
     expect(light.put('tick').phase()).toBe('red');
     expect(light.put('tick').phase()).toBe('yellow');
     expect(light.put('tick').phase()).toBe('green');
-  })
+  });
 
   it('simple light control @init', () => {
     const light = faste()
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
 
-      .on('tick', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('tick', ['yellow'], ({transitTo}) => transitTo('green'))
-      .on('tick', ['green'], ({transitTo}) => transitTo('red'))
-      .on('@init', ({transitTo}) => transitTo('red'))
+      .on('tick', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('tick', ['yellow'], ({ transitTo }) => transitTo('green'))
+      .on('tick', ['green'], ({ transitTo }) => transitTo('red'))
+      .on('@init', ({ transitTo }) => transitTo('red'))
 
       .create();
 
@@ -74,8 +74,8 @@ describe('Faste simple', () => {
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
 
-      .on('@enter', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('@enter', ['yellow'], ({transitTo}) => transitTo('green'))
+      .on('@enter', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('@enter', ['yellow'], ({ transitTo }) => transitTo('green'))
       //.on('@enter', ['green'], ({transitTo}) => transitTo('red'))
 
       .create();
@@ -90,12 +90,12 @@ describe('Faste simple', () => {
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
 
-      .on('@enter', ['red'], ({trigger}) => trigger('tick'))
-      .on('@enter', ['yellow'], ({trigger}) => trigger('tick'))
+      .on('@enter', ['red'], ({ trigger }) => trigger('tick'))
+      .on('@enter', ['yellow'], ({ trigger }) => trigger('tick'))
 
-      .on('tick', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('tick', ['yellow'], ({transitTo}) => transitTo('green'))
-      .on('tick', ['green'], ({transitTo}) => transitTo('red'))
+      .on('tick', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('tick', ['yellow'], ({ transitTo }) => transitTo('green'))
+      .on('tick', ['green'], ({ transitTo }) => transitTo('red'))
 
       .create();
 
@@ -109,16 +109,16 @@ describe('Faste simple', () => {
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
 
-      .on('tick', ['red'], ({transitTo}) => transitTo('yellow'))
-      .on('tick', ['yellow'], ({transitTo}) => transitTo('green'))
-      .on('tick', ['green'], ({transitTo}) => transitTo('red'))
+      .on('tick', ['red'], ({ transitTo }) => transitTo('yellow'))
+      .on('tick', ['yellow'], ({ transitTo }) => transitTo('green'))
+      .on('tick', ['green'], ({ transitTo }) => transitTo('red'))
 
       .create();
 
     const control = faste()
       .withMessages(['tock'])
-
-      .on('tock', ({emit}) => emit('tick'))
+      .withSignals(['tick'])
+      .on('tock', ({ emit }) => emit('tick'))
 
       .create()
       .start();

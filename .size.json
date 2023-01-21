@@ -1,0 +1,3 @@
+{
+  "error": "SyntaxError: Unexpected token p in JSON at position 10\n    at JSON.parse (<anonymous>)\n    at noExt (/Users/akorzunov/dev/github/state/faste/node_modules/lilconfig/dist/index.js:35:21)\n    at Object.search (/Users/akorzunov/dev/github/state/faste/node_modules/lilconfig/dist/index.js:126:43)\n    at async getConfig (/Users/akorzunov/dev/github/state/faste/node_modules/size-limit/get-config.js:120:18)\n    at async module.exports (/Users/akorzunov/dev/github/state/faste/node_modules/size-limit/run.js:74:14)"
+}
