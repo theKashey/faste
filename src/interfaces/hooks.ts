@@ -3,27 +3,23 @@ import { InternalMachine } from './internal-machine';
 export type HookArgument<Messages, State, Attributes, Timers extends string> = InternalMachine<
   State,
   Attributes,
-  '',
+  never,
   Messages,
-  '',
+  never,
   Timers
 > & { message: Messages };
 export type OnHookCallback<Messages, State, Attributes, Timers extends string, T> = (
   arg: HookArgument<Messages, State, Attributes, Timers>
-) => T | void;
+) => T;
 export type OffHookCallback<Messages, State, Attributes, Timers extends string, T> = (
   arg: HookArgument<Messages, State, Attributes, Timers>,
   hookInfo: T
 ) => void;
 
-export type HookCallback<Messages, State, Attributes, Timers extends string, T = any> =
-  | {
-      off: OffHookCallback<Messages, State, Attributes, Timers, void>;
-    }
-  | {
-      on: OnHookCallback<Messages, State, Attributes, Timers, T>;
-      off?: OffHookCallback<Messages, State, Attributes, Timers, T>;
-    };
+export type HookCallback<Messages, State, Attributes, Timers extends string, T = unknown> = {
+  on?: OnHookCallback<Messages, State, Attributes, Timers, T>;
+  off?: OffHookCallback<Messages, State, Attributes, Timers, T>;
+};
 
 export type AnyHookCallback = HookCallback<any, any, any, any>;
 

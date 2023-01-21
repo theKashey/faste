@@ -45,6 +45,7 @@ describe('Faste phone', () => {
       .withMessages(['pickup', 'call', 'digit', 'hang'])
       .withSignals(['DTMF'])
       .withPhases(['idle', 'calling', 'incall', 'end'])
+      .withState<{ calledNumber: unknown | string }>({ calledNumber: undefined })
       .on('@init', ({ transitTo }) => transitTo('idle'))
       .on('pickup', ['idle'], ({ transitTo }) => transitTo('calling'))
       .on('call', ['calling'], ({ transitTo, setState }, number) => {

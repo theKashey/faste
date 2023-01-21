@@ -5,7 +5,6 @@ import { InternalMachine } from './interfaces/internal-machine';
 import { MessageHandler, MessagePhase } from './interfaces/messages';
 import { MAGIC_EVENTS, MAGIC_PHASES } from './types';
 
-
 type ConnectCall<Signals> = (event: Signals, ...args: any[]) => void;
 
 const BUSY_PHASES: MAGIC_PHASES[] = ['@busy', '@locked'];
@@ -140,6 +139,7 @@ export class FasteInstance<
     message?: Messages | MAGIC_EVENTS;
   }): InternalMachine<State, Attributes, Phases, Messages, Signals, Timers> {
     return {
+      phase: this.state.phase,
       state: this.state.state,
       attrs: this.state.attrs,
       message: options.message,
@@ -204,7 +204,7 @@ export class FasteInstance<
     });
   }
 
-  private __put(event: string, ...args: any[]) {
+  private __put(event: string, ...args: any[]): number {
     debug(this, 'put', event, args);
 
     const h: any = this.handlers.handlers;
@@ -230,17 +230,27 @@ export class FasteInstance<
         message: event as any,
       });
 
+      const executeHandler = (handler: (typeof handlers)[0]) => {
+        debug(this, 'message-handler', event, handler);
+
+        try {
+          assertBusy(handler.callback(instance, ...args));
+        } catch (e) {
+          if (!this.__put('@error', e)) {
+            throw e;
+          }
+        }
+
+        hits++;
+      };
+
       handlers.forEach((handler) => {
         if (handler.phases && handler.phases.length > 0) {
           if (handler.phases.indexOf(phase as any) >= 0) {
-            debug(this, 'message-handler', event, handler);
-            assertBusy(handler.callback(instance, ...args));
-            hits++;
+            executeHandler(handler);
           }
         } else {
-          debug(this, 'message-handler', event, handler);
-          assertBusy(handler.callback(instance, ...args));
-          hits++;
+          executeHandler(handler);
         }
       });
     }
@@ -250,6 +260,8 @@ export class FasteInstance<
         this.__put('@miss', event);
       }
     }
+
+    return hits;
   }
 
   _executeMessageQueue() {

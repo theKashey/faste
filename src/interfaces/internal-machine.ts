@@ -1,6 +1,6 @@
 import { MAGIC_EVENTS, MAGIC_PHASES } from '../types';
 
-export interface InternalMachine<State, Attributes, AvailablePhases, Messages, Signals, Timers extends string> {
+export type InternalMachine<State, Attributes, AvailablePhases, Messages, Signals, Timers extends string> = Readonly<{
   /**
    * machine attributes
    */
@@ -9,6 +9,7 @@ export interface InternalMachine<State, Attributes, AvailablePhases, Messages, S
    * machine state
    */
   state: State;
+  phase: AvailablePhases | MAGIC_PHASES;
   /**
    * current message
    */
@@ -51,4 +52,4 @@ export interface InternalMachine<State, Attributes, AvailablePhases, Messages, S
    * @param timerName
    */
   stopTimer: (timerName: Timers) => void;
-}
+}>;

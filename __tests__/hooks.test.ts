@@ -22,7 +22,7 @@ describe('Faste hooks', () => {
 
             return 42;
           },
-          off: (st, magic) => {
+          off: (st, magic: number) => {
             if (st.message === 'tock') {
               if (magic === 42) {
                 tockHandler = undefined;
