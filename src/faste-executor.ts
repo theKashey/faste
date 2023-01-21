@@ -1,5 +1,6 @@
 import { callListeners } from './helpers/call';
 import { debug } from './helpers/debug';
+import { isThenable } from './helpers/thenable';
 import { Guards } from './interfaces/guards';
 import { InternalMachine } from './interfaces/internal-machine';
 import { MessageHandler, MessagePhase } from './interfaces/messages';
@@ -213,12 +214,14 @@ export class FasteInstance<
 
     const assertBusy = (result: Promise<any> | any) => {
       if (BUSY_PHASES.indexOf(this.state.phase as any) >= 0) {
-        if (result && 'then' in result) {
+        if (isThenable(result)) {
           // this is async handler
         } else {
           throw new Error('faste: @busy should only be applied for async handlers');
         }
       }
+
+      return result;
     };
 
     // Precache state, to prevent message to be passed to the changed state
@@ -230,15 +233,23 @@ export class FasteInstance<
         message: event as any,
       });
 
+      const handleError = (error: Error) => {
+        if (!this.__put('@error', error)) {
+          throw error;
+        }
+      };
+
       const executeHandler = (handler: (typeof handlers)[0]) => {
         debug(this, 'message-handler', event, handler);
 
         try {
-          assertBusy(handler.callback(instance, ...args));
-        } catch (e) {
-          if (!this.__put('@error', e)) {
-            throw e;
+          const invocationResult = assertBusy(handler.callback(instance, ...args));
+
+          if (isThenable(invocationResult)) {
+            invocationResult.catch(handleError);
           }
+        } catch (e) {
+          handleError(e);
         }
 
         hits++;
