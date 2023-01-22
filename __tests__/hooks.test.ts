@@ -14,24 +14,18 @@ describe('Faste hooks', () => {
       .on('tick', ['green'], ({ transitTo }) => transitTo('red'))
 
       .hooks({
-        tock: {
-          on: (st): number => {
-            if (st.message === 'tock') {
-              tockHandler = st.trigger;
-            }
+        tock: (st) => {
+          if (st.message === 'tock') {
+            tockHandler = st.trigger;
+          }
 
-            return 42;
-          },
-          off: (st, magic: number) => {
+          return (st) => {
             if (st.message === 'tock') {
-              if (magic === 42) {
-                tockHandler = undefined;
-              }
+              tockHandler = undefined;
             }
-          },
+          };
         },
       })
-
       .create();
 
     light.start('red');
@@ -58,13 +52,12 @@ describe('Faste hooks', () => {
       .on('tock', ['yellow'], ({ transitTo }) => transitTo('green'))
 
       .hooks({
-        tock: {
-          on: () => {
-            tockHandler = true;
-          },
-          off: () => {
+        tock: () => {
+          tockHandler = true;
+
+          return () => {
             tockHandler = false;
-          },
+          };
         },
       })
 

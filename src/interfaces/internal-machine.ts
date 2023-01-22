@@ -44,14 +44,14 @@ export type InternalMachine<
    * @param message
    * @param args
    */
-  emit<Signal extends Signals>(message: Signals, ...args: ExtractSignature<SignalSignatures, Signal>): void;
+  emit<Signal extends Signals>(message: Signal, ...args: ExtractSignature<SignalSignatures, Signal>): void;
 
   /**
    * sends a signal back to the machine
    * @param event
    * @param args
    */
-  trigger<Message extends Messages>(message: Messages, ...args: ExtractSignature<MessageSignatures, Messages>): void;
+  trigger<Message extends Messages>(message: Message, ...args: ExtractSignature<MessageSignatures, Message>): void;
 
   /**
    * Starts timer

@@ -16,10 +16,8 @@ describe('Faste timers', () => {
         // do nothing
       })
       .hooks({
-        on_T0: {
-          on: ({ startTimer }) => {
-            startTimer('T0');
-          },
+        on_T0: ({ startTimer }) => {
+          startTimer('T0');
         },
       });
 

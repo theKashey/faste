@@ -3,8 +3,8 @@ import { OnCallback } from './interfaces/callbacks';
 import { GuardCallback, Guards } from './interfaces/guards';
 import { Hooks } from './interfaces/hooks';
 import { MessageHandlers } from './interfaces/messages';
-import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
-import { MAGIC_EVENTS } from './types';
+import { CallSignature, DefaultSignatures, ExtractSignature, StateChangeSignature } from './interfaces/signatures';
+import { MAGIC_EVENTS, STATE_CHANGE } from './types';
 
 export type PhaseTransition<T extends string, K> = { [key in T]: K };
 
@@ -13,6 +13,16 @@ export type PhaseTransitionSetup<K extends string, T extends PhaseTransition<K, 
 };
 
 type FasteTimers<TimerNames extends string> = Record<TimerNames, number>;
+
+type ExtractMessageArgument<
+  Message extends string,
+  MessageSignatures extends CallSignature<string>,
+  State
+> = Message extends STATE_CHANGE
+  ? [oldState: State]
+  : Message extends MAGIC_EVENTS
+  ? ExtractSignature<DefaultSignatures, Message>
+  : ExtractSignature<MessageSignatures, Message>;
 
 /**
  * The Faste machine
@@ -28,8 +38,24 @@ export class Faste<
   Timers extends string = never,
   MessageSignatures extends CallSignature<Messages | MAGIC_EVENTS> = DefaultSignatures,
   SignalsSignatures extends CallSignature<Signals> = CallSignature<Signals>,
-  FasteHooks = Hooks<State, Attributes, Phases, Timers>,
-  OnCall = OnCallback<State, Attributes, Phases, Messages, Signals, Timers, any[]>,
+  FasteHooks extends Hooks<State, Attributes, Messages, Timers, MessageSignatures> = Hooks<
+    State,
+    Attributes,
+    Messages,
+    Timers,
+    MessageSignatures
+  >,
+  OnCall = OnCallback<
+    State,
+    Attributes,
+    Phases,
+    Messages,
+    Signals,
+    Timers,
+    any[],
+    MessageSignatures,
+    SignalsSignatures
+  >,
   FasteMessageHandlers = MessageHandlers<State, Attributes, Phases, Messages, OnCall>
 > {
   private fState: State;
@@ -85,7 +111,9 @@ export class Faste<
       Messages,
       Signals,
       Timers,
-      ExtractSignature<MessageSignatures, Message>
+      ExtractMessageArgument<Message, MessageSignatures, State>,
+      MessageSignatures,
+      SignalsSignatures
     >
   ): this;
   /**
@@ -102,7 +130,9 @@ export class Faste<
       Messages,
       Signals,
       Timers,
-      ExtractSignature<MessageSignatures, Message>
+      ExtractMessageArgument<Message, MessageSignatures, State>,
+      MessageSignatures,
+      SignalsSignatures
     >
   ): this;
 
@@ -133,15 +163,17 @@ export class Faste<
 
   /**
    * Adds hooks to the faste machine
+   *
+   * Hook is an event of message being observed
    * @param hooks
    *
    * @example machine.hooks({
-   *  click: {
-   *   on: onCallback,
-   *   off: offCallback,
-   * }});
+   *  click: () => {
+   *    onCallback();
+   *    return offCallback
+   *  }
    */
-  public hooks(hooks: Hooks<State, Attributes, Messages, Timers>): this {
+  public hooks(hooks: Hooks<State, Attributes, Messages, Timers, MessageSignatures>): this {
     Object.assign(this.fHooks, hooks);
 
     return this;
@@ -226,7 +258,17 @@ export class Faste<
    */
   withState<T extends object>(
     state?: T
-  ): Faste<T, Attributes, Phases, Transitions, Messages, Signals, Timers, MessageSignatures, SignalsSignatures> {
+  ): Faste<
+    T,
+    Attributes,
+    Phases,
+    Transitions,
+    Messages,
+    Signals,
+    Timers,
+    MessageSignatures | StateChangeSignature<T>,
+    SignalsSignatures
+  > {
     return this._alter({ state });
   }
 
@@ -296,7 +338,7 @@ export class Faste<
    */
   withSignals<T extends string>(
     signals?: T[]
-  ): Faste<State, Attributes, Phases, Transitions, Messages, T, Timers, MessageSignatures, SignalsSignatures> {
+  ): Faste<State, Attributes, Phases, Transitions, Messages, T, Timers, MessageSignatures, CallSignature<T>> {
     return this._alter({});
   }
 
@@ -324,7 +366,8 @@ export class Faste<
     Messages,
     Signals,
     Timers,
-    Signature | MessageSignatures
+    Signature,
+    SignalsSignatures
   > {
     return this._alter({});
   }

@@ -3,13 +3,15 @@ export type CallSignature<Name extends string> = {
 };
 
 export type DefaultSignatures = {
-  '@enter': [newPhase: string];
-  '@leave': [oldPhase: string];
-  '@error': [error: Error];
-  '@change': [oldState: any];
+  '@enter': readonly [newPhase: string];
+  '@leave': readonly [oldPhase: string];
+  '@error': readonly [error: Error];
 };
 
-export type ExtractSignature<
-  MessageSignatures,
-  Message extends string
-> = MessageSignatures extends CallSignature<Message> ? MessageSignatures[Message] : [];
+export type StateChangeSignature<State> = {
+  '@change': [oldState: State];
+};
+
+export type ExtractSignature<Signatures, Key extends string> = Signatures extends CallSignature<Key>
+  ? Signatures[Key]
+  : [];

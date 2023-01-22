@@ -21,6 +21,10 @@ describe('Faste phone', () => {
       })
       .withMessages<`DTMF-${DTMF_CHAR}`>()
       .withSignals(['call', 'digit'])
+      .withSignalArguments<{
+        call: [phoneNumber: string];
+        digit: [char: string];
+      }>()
       .scope((faste) =>
         Array(9)
           .fill(1)
@@ -34,12 +38,14 @@ describe('Faste phone', () => {
           )
       )
       .on('DTMF-*', ({ setState }) => setState({ number: '' }))
-      .on('@change', ({ state, emit }) => {
+      .on('@change', ({ state, emit }, oldState) => {
         if (state.number.length >= 7) {
           emit('call', state.number);
         }
 
-        emit('digit', state.lastNumber);
+        if (state.lastNumber !== oldState.lastNumber) {
+          emit('digit', state.lastNumber);
+        }
       })
       .create()
       .start();
@@ -48,11 +54,14 @@ describe('Faste phone', () => {
       .withMessages(['pickup', 'call', 'digit', 'hang'])
       .withSignals(['DTMF'])
       .withPhases(['idle', 'calling', 'incall', 'end'])
+      .withState<{ calledNumber: unknown | string }>({ calledNumber: undefined })
       .withMessageArguments<{
         call: [number: number];
         digit: [char: string];
       }>()
-      .withState<{ calledNumber: unknown | string }>({ calledNumber: undefined })
+      .withSignalArguments<{
+        DTMF: [string];
+      }>()
       .on('@init', ({ transitTo }) => transitTo('idle'))
       .on('pickup', ['idle'], ({ transitTo }) => transitTo('calling'))
       .on('call', ['calling'], ({ transitTo, setState }, number) => {

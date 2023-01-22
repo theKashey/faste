@@ -2,6 +2,7 @@ import { callListeners } from './helpers/call';
 import { debug } from './helpers/debug';
 import { isThenable } from './helpers/thenable';
 import { Guards } from './interfaces/guards';
+import { Hooks } from './interfaces/hooks';
 import { InternalMachine } from './interfaces/internal-machine';
 import { MessageHandler, MessagePhase } from './interfaces/messages';
 import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
@@ -39,11 +40,11 @@ export interface FastePutable<Messages> {
 export class FasteInstance<
   State,
   Attributes,
-  Phases,
+  Phases extends string,
   Messages extends string,
   Signals extends string,
   MessageHandlers,
-  FasteHooks,
+  FasteHooks extends Hooks<State, Attributes, Messages, Timers, MessageSignatures>,
   FasteGuards extends Guards<any, any, any>,
   Timers extends string,
   MessageSignatures extends CallSignature<Messages> = DefaultSignatures,
@@ -189,30 +190,31 @@ export class FasteInstance<
     const instance = this._createInstance({
       phase: this.state.phase,
     });
-    const h = this.handlers.hooks as any;
+    const h = this.handlers.hooks;
 
-    Object.keys(newHandlers).forEach((handler) => {
+    Object.keys(newHandlers).forEach((handler: Messages) => {
       if (!oldHandlers[handler] && h[handler]) {
         debug(this, 'hook-on', h[handler]);
 
-        this.handlersOffValues[handler] = h[handler].on({
+        this.handlersOffValues[handler] = h[handler]({
           ...instance,
+          phase: undefined,
           message: handler,
         });
       }
     });
 
-    Object.keys(oldHandlers).forEach((handler) => {
-      if (!newHandlers[handler] && h[handler]) {
+    Object.keys(oldHandlers).forEach((handler: Messages) => {
+      if (!newHandlers[handler] && h[handler] && this.handlersOffValues[handler]) {
         debug(this, 'hook-off', h[handler]);
 
-        h[handler].off(
-          {
-            ...instance,
-            message: handler,
-          },
-          this.handlersOffValues[handler]
-        );
+        this.handlersOffValues[handler]({
+          ...instance,
+          phase: undefined,
+          message: handler,
+        });
+
+        this.handlersOffValues[handler] = undefined;
       }
     });
   }
