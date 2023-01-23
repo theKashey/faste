@@ -133,9 +133,9 @@ export class FasteInstance<
         this._started = true;
       }
 
-      this.__put('@enter', oldPhase);
-
       callListeners(this.stateObservers, phase);
+
+      this.__put('@enter', oldPhase);
 
       if (BUSY_PHASES.indexOf(phase as any) === -1) {
         if (!this.callDepth) {
