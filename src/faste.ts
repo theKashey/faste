@@ -3,8 +3,14 @@ import { OnCallback } from './interfaces/callbacks';
 import { GuardCallback, Guards } from './interfaces/guards';
 import { Hooks } from './interfaces/hooks';
 import { MessageHandlers } from './interfaces/messages';
-import { CallSignature, DefaultSignatures, ExtractSignature, StateChangeSignature } from './interfaces/signatures';
-import { MAGIC_EVENTS, STATE_CHANGE } from './types';
+import {
+  CallSignature,
+  DefaultSignatures,
+  EnterLeaveSignatures,
+  ExtractSignature,
+  StateChangeSignature,
+} from './interfaces/signatures';
+import { ENTER_LEAVE, MAGIC_EVENTS, STATE_CHANGE } from './types';
 
 export type PhaseTransition<T extends string, K> = { [key in T]: K };
 
@@ -17,9 +23,12 @@ type FasteTimers<TimerNames extends string> = Record<TimerNames, number>;
 type ExtractMessageArgument<
   Message extends string,
   MessageSignatures extends CallSignature<string>,
-  State
+  State,
+  Phases
 > = Message extends STATE_CHANGE
   ? [oldState: State]
+  : Message extends ENTER_LEAVE
+  ? ExtractSignature<EnterLeaveSignatures<Phases>, Message>
   : Message extends MAGIC_EVENTS
   ? ExtractSignature<DefaultSignatures, Message>
   : ExtractSignature<MessageSignatures, Message>;
@@ -36,8 +45,8 @@ export class Faste<
   Messages extends string = MAGIC_EVENTS,
   Signals extends string = never,
   Timers extends string = never,
-  MessageSignatures extends CallSignature<Messages | MAGIC_EVENTS> = DefaultSignatures,
-  SignalsSignatures extends CallSignature<Signals> = CallSignature<Signals>,
+  MessageSignatures extends CallSignature<Messages | MAGIC_EVENTS> = CallSignature<MAGIC_EVENTS>,
+  SignalsSignatures extends CallSignature<Signals> = CallSignature<''>,
   FasteHooks extends Hooks<State, Attributes, Messages, Timers, MessageSignatures> = Hooks<
     State,
     Attributes,
@@ -65,6 +74,8 @@ export class Faste<
 
   private fTimers: FasteTimers<Timers>;
   private fGuards: Guards<State, Phases, Attributes>;
+
+  private asyncSignals = false;
 
   constructor(
     state?: State,
@@ -111,7 +122,7 @@ export class Faste<
       Messages,
       Signals,
       Timers,
-      ExtractMessageArgument<Message, MessageSignatures, State>,
+      ExtractMessageArgument<Message, MessageSignatures, State, Phases>,
       MessageSignatures,
       SignalsSignatures
     >
@@ -130,7 +141,7 @@ export class Faste<
       Messages,
       Signals,
       Timers,
-      ExtractMessageArgument<Message, MessageSignatures, State>,
+      ExtractMessageArgument<Message, MessageSignatures, State, Phases>,
       MessageSignatures,
       SignalsSignatures
     >
@@ -243,6 +254,7 @@ export class Faste<
         phase: undefined,
         instance: undefined,
         timers: this.fTimers,
+        asyncSignals: this.asyncSignals,
       },
       {
         handlers: this.fHandlers,
@@ -338,10 +350,21 @@ export class Faste<
    */
   withSignals<T extends string>(
     signals?: T[]
-  ): Faste<State, Attributes, Phases, Transitions, Messages, T, Timers, MessageSignatures, CallSignature<T>> {
+  ): Faste<State, Attributes, Phases, Transitions, Messages, T, Timers, MessageSignatures, { __dummy__: [] }> {
     return this._alter({});
   }
 
+  /**
+   * Defines timers to be used
+   * @param timers
+   * @example
+   * ```tsx
+   * .withTimers({
+   *     T0: 10*1000, // 10s
+   *     T1: 500,
+   * }
+   * ```
+   */
   withTimers<T extends string>(
     timers: Record<T, number>
   ): Faste<
@@ -358,6 +381,13 @@ export class Faste<
     return this._alter({ timers });
   }
 
+  /**
+   * Defines a specification for message(`trigger`/`put`) arguments
+   * @example
+   * ```tsx
+   * .withMessageArguments<{ signal1: [name: string, count:number]}>()
+   * ```
+   */
   withMessageArguments<Signature extends CallSignature<Messages>>(): Faste<
     State,
     Attributes,
@@ -372,6 +402,13 @@ export class Faste<
     return this._alter({});
   }
 
+  /**
+   * Defines a specification for signal(`emit`) arguments
+   * @example
+   * ```tsx
+   * .withSignalArguments<{ signal1: [name: string, count:number]}>()
+   * ```
+   */
   withSignalArguments<Signature extends CallSignature<Signals>>(): Faste<
     State,
     Attributes,
@@ -384,5 +421,14 @@ export class Faste<
     Signature
   > {
     return this._alter({});
+  }
+
+  /**
+   * defers all signal `emits` making them async
+   */
+  withAsyncSignals(async = true): this {
+    this.asyncSignals = async;
+
+    return this;
   }
 }

@@ -12,7 +12,10 @@ describe('Faste busy', () => {
       .on('tick', ({ setState, state }) => setState({ counter: state.counter + 1 }))
       .on('observe', async ({ transitTo }, observer) => {
         transitTo('@busy');
-        observer.then(() => transitTo('@current'));
+
+        observer.then(() => {
+          transitTo('@current');
+        });
       })
 
       .create()

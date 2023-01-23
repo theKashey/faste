@@ -51,7 +51,10 @@ export type InternalMachine<
    * @param event
    * @param args
    */
-  trigger<Message extends Messages>(message: Message, ...args: ExtractSignature<MessageSignatures, Message>): void;
+  trigger<Message extends Messages>(
+    message: Exclude<Message, MAGIC_EVENTS>,
+    ...args: ExtractSignature<MessageSignatures, Message>
+  ): void;
 
   /**
    * Starts timer

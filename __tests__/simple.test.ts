@@ -108,7 +108,6 @@ describe('Faste simple', () => {
     const light = faste()
       .withPhases(['red', 'yellow', 'green'])
       .withMessages(['tick'])
-
       .on('tick', ['red'], ({ transitTo }) => transitTo('yellow'))
       .on('tick', ['yellow'], ({ transitTo }) => transitTo('green'))
       .on('tick', ['green'], ({ transitTo }) => transitTo('red'))

@@ -66,7 +66,19 @@ describe('signatures', () => {
           tick: [arg: number];
         }>()
         .on('@leave', (_, oldPhase) => {
+          // @ts-expect-error
           oldPhase.startsWith('xx');
+        });
+
+      faste()
+        .withMessages(['tick'])
+        .withPhases(['some', 'another'])
+        .withMessageArguments<{
+          tick: [arg: number];
+        }>()
+        .on('@leave', (_, oldPhase, newPhase) => {
+          oldPhase.startsWith('xx');
+          newPhase.startsWith('xx');
         })
         .on('@enter', (_, oldPhase) => {
           oldPhase.startsWith('xx');
@@ -87,6 +99,47 @@ describe('signatures', () => {
           // @ts-expect-error
           oldState.x;
         });
+
+      faste()
+        .withState({ x: 1 })
+        .on('@change', (_) => {
+          // nope
+        })
+        .on('@change', (_, oldState) => {
+          oldState.x;
+        });
+    });
+
+    it('connect', () => {
+      const machine1 = faste()
+        .withMessages(['in', 'out', 'sig-1', 'sig-2', 'sig-5'])
+        .withMessageArguments<{
+          'sig-2': [number];
+        }>()
+        .withSignals(['sig-1', 'sig-2', 'sig-5', 'sig-6'])
+        .withSignalArguments<{
+          'sig-1': [string];
+          'sig-5': [Date];
+        }>()
+        .create();
+
+      machine1.connect((event, ...args) => {
+        switch (event) {
+          case 'sig-1':
+            const [string] = machine1.castSignalArgument(event, ...args);
+            string.startsWith('x');
+          case 'sig-2':
+            // @ts-expect-error
+            const [any] = machine1.castSignalArgument(event, ...args);
+        }
+      });
+
+      // @ts-expect-error
+      machine1.connect(machine1);
+
+      machine1.connect<'sig-1'>(machine1);
+      machine1.connect<'sig-2'>(machine1);
+      machine1.connect<'sig-5'>(machine1);
 
       faste()
         .withState({ x: 1 })

@@ -1,4 +1,4 @@
-import { callListeners } from './helpers/call';
+import { callListeners, invokeAsync } from './helpers/call';
 import { debug } from './helpers/debug';
 import { isThenable } from './helpers/thenable';
 import { Guards } from './interfaces/guards';
@@ -8,9 +8,18 @@ import { MessageHandler, MessagePhase } from './interfaces/messages';
 import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
 import { MAGIC_EVENTS, MAGIC_PHASES } from './types';
 
-type ConnectCall<Signals> = (event: Signals, ...args: any[]) => void;
+type AnyConnectCall<Signals extends string> = (event: Signals, ...args: any[]) => void;
+
+type ConnectCall<Signals extends string, Signatures extends CallSignature<Signals>> = <Signal extends Signals>(
+  event: Signal,
+  ...args: ExtractSignature<Signatures, Signal, unknown[]>
+) => void;
 
 const BUSY_PHASES: MAGIC_PHASES[] = ['@busy', '@locked'];
+
+const START_PHASE = '@start' as const;
+const STOP_PHASE = '@destroy' as const;
+type START_STOP_PHASES = typeof START_PHASE | typeof STOP_PHASE;
 
 export type FasteInstanceHooks<MessageHandlers, FasteHooks, FasteGuards> = {
   handlers: MessageHandlers;
@@ -31,11 +40,20 @@ export type FastInstanceState<
   phase?: Phases | MAGIC_PHASES;
   instance?: InternalMachine<State, Attributes, Phases, Messages, Signals, Timers, never, never>;
   timers: Record<Timers, number>;
+  asyncSignals: boolean;
 };
+//
+// export type FastePutable<Messages extends string, Signatures extends CallSignature<Messages>> = {
+//     put<Message extends Messages>(message: Message, ...args: ExtractSignature<Signatures, Message, []>): any;
+// }
 
-export interface FastePutable<Messages> {
-  put(message: Messages | MAGIC_EVENTS, ...args: any[]): this;
-}
+export type FastePutable<Messages extends string, Signatures extends CallSignature<Messages>> = {
+  put(
+    ...args: Parameters<
+      FasteInstance<never, never, never, Messages, never, never, never, never, never, Signatures>['put']
+    >
+  ): any;
+};
 
 export class FasteInstance<
   State,
@@ -47,15 +65,15 @@ export class FasteInstance<
   FasteHooks extends Hooks<State, Attributes, Messages, Timers, MessageSignatures>,
   FasteGuards extends Guards<any, any, any>,
   Timers extends string,
-  MessageSignatures extends CallSignature<Messages> = DefaultSignatures,
+  MessageSignatures extends CallSignature<Messages>,
   SignalSignatures extends CallSignature<Signals> = CallSignature<Signals>
 > {
   private state: FastInstanceState<State, Attributes, Phases, Messages, Signals, Timers>;
 
   private handlers: FasteInstanceHooks<MessageHandlers, FasteHooks, FasteGuards>;
 
-  private stateObservers: ((phase: Phases) => void)[];
-  private messageObservers: ConnectCall<Signals>[];
+  private stateObservers: ((phase: Phases | MAGIC_PHASES | START_STOP_PHASES) => void)[];
+  private messageObservers: ConnectCall<Signals, any>[];
   private messageQueue: { message: Messages | MAGIC_EVENTS; args: any }[];
   private callDepth: number;
   private handlersOffValues: any;
@@ -75,6 +93,7 @@ export class FasteInstance<
 
     this.stateObservers = [];
     this.messageObservers = [];
+    this.messageQueue = [];
     this.timers = {};
   }
 
@@ -122,7 +141,7 @@ export class FasteInstance<
       }
 
       if (oldPhase) {
-        this.__put('@leave', phase);
+        this.__put('@leave', phase, oldPhase);
       }
 
       this.__performHookOn(phase);
@@ -135,13 +154,7 @@ export class FasteInstance<
 
       callListeners(this.stateObservers, phase);
 
-      this.__put('@enter', oldPhase);
-
-      if (BUSY_PHASES.indexOf(phase as any) === -1) {
-        if (!this.callDepth) {
-          this._executeMessageQueue();
-        }
-      }
+      this.__put('@enter', oldPhase, phase);
     }
 
     return true;
@@ -159,8 +172,12 @@ export class FasteInstance<
       setState: (newState) =>
         typeof newState === 'function' ? this._setState(newState(this.state.state)) : this._setState(newState),
       transitTo: (phase) => this._transitTo(phase === '@current' ? options.phase : phase),
-      emit: (message, ...args) => callListeners(this.messageObservers, message, ...args),
-      trigger: (event, ...args) => this.put(event, ...args),
+      emit: (message, ...args) => {
+        this.state.asyncSignals
+          ? invokeAsync(() => callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args))
+          : callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args);
+      },
+      trigger: (event, ...args) => this.put(event, ...(args as any)),
       startTimer: (timerName) => {
         if (!this.timers[timerName]) {
           if (!(timerName in this.state.timers)) {
@@ -220,6 +237,21 @@ export class FasteInstance<
   }
 
   private __put(event: string, ...args: any[]): number {
+    this.callDepth++;
+
+    const result = this.__direct_put(event, ...args);
+    this.callDepth--;
+
+    if (BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
+      if (!this.callDepth) {
+        this._executeMessageQueue();
+      }
+    }
+
+    return result;
+  }
+
+  private __direct_put(event: string, ...args: any[]): number {
     debug(this, 'put', event, args);
 
     const h: any = this.handlers.handlers;
@@ -248,7 +280,7 @@ export class FasteInstance<
       });
 
       const handleError = (error: Error) => {
-        if (!this.__put('@error', error)) {
+        if (!this.__direct_put('@error', error)) {
           throw error;
         }
       };
@@ -290,10 +322,12 @@ export class FasteInstance<
   }
 
   _executeMessageQueue() {
-    if (this.messageQueue.length) {
+    while (this.messageQueue.length) {
       const q = this.messageQueue;
       this.messageQueue = [];
-      q.forEach((q) => this.put(q.message, ...q.args));
+      this.callDepth++;
+      q.forEach((q) => this.__put(q.message, ...q.args));
+      this.callDepth--;
     }
   }
 
@@ -317,6 +351,8 @@ export class FasteInstance<
     this._started = false;
 
     if (phase) {
+      callListeners(this.stateObservers, START_PHASE);
+
       if (!this._transitTo(phase)) {
         throw new Error('Faste machine initialization failed - phase was rejected');
       }
@@ -339,12 +375,18 @@ export class FasteInstance<
     return this;
   }
 
+  // private innerPut<Message extends Messages | MAGIC_EVENTS>(
+  //     message: Message,
+  //     ...args: ExtractSignature<MessageSignatures, Message>
+  // ): this {
+  //     return this.put(message as any, ...args);
+  // }
   /**
    * put the message in
    * @param {String} message
    * @param {any} args
    */
-  put<Message extends Messages | MAGIC_EVENTS>(
+  put<Message extends Exclude<Messages, MAGIC_EVENTS>>(
     message: Message,
     ...args: ExtractSignature<MessageSignatures, Message>
   ): this {
@@ -362,13 +404,7 @@ export class FasteInstance<
           break;
 
         default:
-          this.callDepth++;
           this.__put(message as string, ...args);
-          this.callDepth--;
-
-          if (!this.callDepth) {
-            this._executeMessageQueue();
-          }
       }
     }
 
@@ -377,27 +413,61 @@ export class FasteInstance<
   }
 
   /**
-   * Connects one machine to another
-   * @param plug
+   * Connects this machine output with another machine input
+   * @param receiver
+   * @returns disconnect function
+   *
+   * arguments are untyped, use {@see castSignalArgument} to retype them
    */
-  connect(plug: FastePutable<Signals> | ConnectCall<Signals>): this {
-    if ('put' in plug) {
-      this.messageObservers.push((event: Signals, ...args: any[]) => plug.put(event, ...args));
-    } else {
-      this.messageObservers.push(plug);
-    }
+  connect<UsedSignals extends Signals = Signals>(
+    receiver: AnyConnectCall<UsedSignals> | FastePutable<UsedSignals, SignalSignatures>
+  ) {
+    const connector: ConnectCall<UsedSignals, any> =
+      'put' in receiver ? (event, ...args) => receiver.put(event as any, ...(args as any)) : receiver;
 
-    return this;
+    this.messageObservers.push(connector);
+
+    return () => {
+      const element = this.messageObservers.indexOf(connector);
+
+      if (element >= 0) {
+        this.messageObservers.splice(element, 1);
+      }
+    };
+  }
+
+  /**
+   * retypes signal arguments
+   * @example
+   * ```tsx
+   * control.connect((event,...args)=> {
+   *   switch(event){
+   *    case "tick":
+   *      const [payload] = control.castSignalArgument(event, args);
+   *      payload.startsWith(); // now type is known
+   *    }
+   * })
+   * ```
+   */
+  castSignalArgument<Signal extends Signals>(name: Signal, ...args: any[]): ExtractSignature<SignalSignatures, Signal> {
+    return args as any;
   }
 
   /**
    * adds change observer. Observer could not be removed.
    * @param callback
+   * @returns un-observe function
    */
-  observe(callback: (phase: Phases) => void): this {
+  observe(callback: (phase: Phases | MAGIC_PHASES | START_STOP_PHASES) => void) {
     this.stateObservers.push(callback);
 
-    return this;
+    return () => {
+      const element = this.stateObservers.indexOf(callback);
+
+      if (element >= 0) {
+        this.stateObservers.splice(element, 1);
+      }
+    };
   }
 
   /**
@@ -428,6 +498,7 @@ export class FasteInstance<
    */
   destroy(): void {
     this.__performHookOn(undefined);
+    callListeners(this.stateObservers, STOP_PHASE);
     this.stateObservers = [];
   }
 }
