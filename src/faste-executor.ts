@@ -172,12 +172,22 @@ export class FasteInstance<
         typeof newState === 'function' ? this._setState(newState(this.state.state)) : this._setState(newState),
       transitTo: (phase) => this._transitTo(phase === '@current' ? options.phase : phase),
       emit: (message, ...args) => {
+        if (!this._started) {
+          // there could be events running after destruction
+          return;
+        }
+
         this.state.asyncSignals
           ? invokeAsync(() => callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args))
           : callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args);
       },
       trigger: (event, ...args) => this.put(event, ...(args as any)),
       startTimer: (timerName) => {
+        if (!this._started) {
+          // there could be events running after destruction
+          return;
+        }
+
         if (!this.timers[timerName]) {
           if (!(timerName in this.state.timers)) {
             throw new Error(`cannot start timer ${timerName} as it missing configuration`);
@@ -521,5 +531,7 @@ export class FasteInstance<
 
     this.timers = {};
     this.stateObservers = [];
+    //
+    this._started = false;
   }
 }
