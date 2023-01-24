@@ -34,7 +34,7 @@ describe('Faste order', () => {
 
     it('sync', () => {
       const trap = jest.fn();
-      const instance = factory().create();
+      const instance = factory().create().start();
       instance.connect(trap);
       instance.put('ping');
 
@@ -43,7 +43,7 @@ describe('Faste order', () => {
 
     it('async', async () => {
       const trap = jest.fn();
-      const instance = factory().withAsyncSignals().create();
+      const instance = factory().withAsyncSignals().create().start();
       instance.connect(trap);
       instance.put('ping');
 

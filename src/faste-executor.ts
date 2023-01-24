@@ -148,8 +148,7 @@ export class FasteInstance<
       this.state.phase = phase;
 
       if (!this._started) {
-        this.__put('@init');
-        this._started = true;
+        this._initialize();
       }
 
       callListeners(this.stateObservers, phase);
@@ -200,9 +199,9 @@ export class FasteInstance<
     };
   }
 
-  private __performHookOn(nextPhase: Phases | MAGIC_PHASES | null) {
-    const oldHandlers = this._started ? this._collectHandlers(this.state.phase) : {};
-    const newHandlers = !this._started || nextPhase ? this._collectHandlers(nextPhase) : {};
+  private __performHookOn(nextPhase: Phases | MAGIC_PHASES | null, initialState = false) {
+    const oldHandlers = !initialState ? this._collectHandlers(this.state.phase) : {};
+    const newHandlers = initialState || nextPhase ? this._collectHandlers(nextPhase) : {};
 
     const instance = this._createInstance({
       phase: this.state.phase,
@@ -357,12 +356,17 @@ export class FasteInstance<
         throw new Error('Faste machine initialization failed - phase was rejected');
       }
     } else {
-      this.__put('@init');
-      this.__performHookOn(null);
-      this._started = true;
+      this._initialize();
     }
 
     return this;
+  }
+
+  /**
+   * returns if machine currently running
+   */
+  isStarted() {
+    return this._started;
   }
 
   /**
@@ -391,8 +395,9 @@ export class FasteInstance<
     ...args: ExtractSignature<MessageSignatures, Message>
   ): this {
     if (!this._started) {
-      // console.error('machine is not started');
-      // return;
+      console.error('machine is not started');
+
+      return;
     }
 
     if (this.callDepth) {
@@ -498,6 +503,11 @@ export class FasteInstance<
     return this._createInstance({});
   }
 
+  private _initialize() {
+    this._started = true;
+    this.__put('@init');
+    this.__performHookOn(null, true);
+  }
   /**
    * destroys the machine
    */

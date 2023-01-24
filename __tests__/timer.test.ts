@@ -50,7 +50,7 @@ describe('Faste timers', () => {
     const instance = machine.create().start();
 
     expect(timerCalled).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(10);
+    jest.advanceTimersByTime(15);
     expect(timerCalled).toHaveBeenCalledTimes(1);
     instance.destroy();
     jest.advanceTimersByTime(100);
