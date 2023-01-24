@@ -27,4 +27,33 @@ describe('Faste timers', () => {
     jest.advanceTimersByTime(100);
     expect(timerCalled).toHaveBeenCalled();
   });
+
+  it('lifecycle', () => {
+    jest.useFakeTimers();
+
+    const timerCalled = jest.fn();
+
+    const machine = faste()
+      .withTimers({
+        T0: 10,
+      })
+      .on('on_T0', ({ startTimer }) => {
+        timerCalled();
+        startTimer('T0');
+      })
+      .hooks({
+        on_T0: ({ startTimer }) => {
+          startTimer('T0');
+        },
+      });
+
+    const instance = machine.create().start();
+
+    expect(timerCalled).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(10);
+    expect(timerCalled).toHaveBeenCalledTimes(1);
+    instance.destroy();
+    jest.advanceTimersByTime(100);
+    expect(timerCalled).toHaveBeenCalledTimes(1);
+  });
 });

@@ -390,6 +390,11 @@ export class FasteInstance<
     message: Message,
     ...args: ExtractSignature<MessageSignatures, Message>
   ): this {
+    if (!this._started) {
+      // console.error('machine is not started');
+      // return;
+    }
+
     if (this.callDepth) {
       debug(this, 'queue', message, args);
       this.messageQueue.push({ message, args });
@@ -499,6 +504,12 @@ export class FasteInstance<
   destroy(): void {
     this.__performHookOn(undefined);
     callListeners(this.stateObservers, STOP_PHASE);
+
+    Object.entries(this.timers).forEach(([, value]) => {
+      clearTimeout(value as any);
+    });
+
+    this.timers = {};
     this.stateObservers = [];
   }
 }
