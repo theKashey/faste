@@ -11,4 +11,4 @@ name, `ask symbol --name <name>` prints what it is and where it is declared, and
 
 `VARIANCE_AUTHORITY_SINCE= pnpm exec jest` runs only the tests your edit reached, and
 says `selected N of M` first. When it selects none, Jest prints `No tests found`
-and exits 1: that is not a failure.
+and exits 0.
