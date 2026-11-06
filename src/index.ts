@@ -6,3 +6,5 @@ import { Faste } from './faste.js';
 export function faste(): Faste {
   return new Faste();
 }
+
+export { setFasteDebug } from './helpers/debug.js';

@@ -1,4 +1,4 @@
-import { faste } from '../src';
+import { faste, setFasteDebug } from '../src';
 
 describe('machine lifecycle', () => {
   const machine = (onInit: () => void) =>
@@ -234,5 +234,17 @@ describe('phase events', () => {
 
     expect(enter).toHaveBeenCalledWith('a', 'b');
     expect(leave).toHaveBeenCalledWith('b', 'a');
+  });
+});
+
+describe('package entry', () => {
+  it('exports setFasteDebug as the README says', () => {
+    const trace = jest.fn();
+
+    setFasteDebug(trace);
+    faste().create().start();
+    setFasteDebug(false);
+
+    expect(trace).toHaveBeenCalled();
   });
 });
