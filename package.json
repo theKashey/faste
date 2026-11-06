@@ -10,7 +10,6 @@
     "dist"
   ],
   "scripts": {
-    "dev": "lib-builder dev",
     "test": "jest",
     "test:ci": "jest --runInBand --coverage",
     "build": "lib-builder build && yarn size:report",
@@ -33,9 +32,10 @@
   "author": "Anton Korzunov (thekashey@gmail.com)",
   "license": "MIT",
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^8.1.2",
-    "@theuiteam/lib-builder": "^0.2.3",
-    "@types/node": "10.3.4"
+    "@size-limit/preset-small-lib": "^11.2.0",
+    "@theuiteam/lib-builder": "^1.1.0",
+    "@types/node": "^24",
+    "size-limit": "^11.2.0"
   },
   "engines": {
     "node": ">=10"

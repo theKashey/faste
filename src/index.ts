@@ -1,4 +1,4 @@
-import { Faste } from './faste';
+import { Faste } from './faste.js';
 
 /**
  * Creates a faste machine

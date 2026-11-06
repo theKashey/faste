@@ -1,12 +1,13 @@
-import { callListeners, invokeAsync } from './helpers/call';
-import { debug } from './helpers/debug';
-import { isThenable } from './helpers/thenable';
-import { Guards } from './interfaces/guards';
-import { Hooks } from './interfaces/hooks';
-import { InternalMachine } from './interfaces/internal-machine';
-import { MessageHandler, MessagePhase } from './interfaces/messages';
-import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
-import { MAGIC_EVENTS, MAGIC_PHASES } from './types';
+import { callListeners, invokeAsync } from './helpers/call.js';
+import { debug } from './helpers/debug.js';
+import { isThenable } from './helpers/thenable.js';
+import type { Guards } from './interfaces/guards.js';
+import type { Hooks } from './interfaces/hooks.js';
+import type { InternalMachine } from './interfaces/internal-machine.js';
+import type { MessageHandler, MessagePhase } from './interfaces/messages.js';
+import type { CallSignature, ExtractSignature } from './interfaces/signatures.js';
+import type { DefaultSignatures } from './interfaces/signatures.js';
+import type { MAGIC_EVENTS, MAGIC_PHASES } from './types.js';
 
 type AnyConnectCall<Signals extends string> = (event: Signals, ...args: any[]) => void;
 
@@ -33,7 +34,7 @@ export type FastInstanceState<
   Phases,
   Messages extends string,
   Signals extends string,
-  Timers extends string
+  Timers extends string,
 > = {
   state: State;
   attrs: Attributes;
@@ -66,7 +67,7 @@ export class FasteInstance<
   FasteGuards extends Guards<any, any, any>,
   Timers extends string,
   MessageSignatures extends CallSignature<Messages>,
-  SignalSignatures extends CallSignature<Signals> = CallSignature<Signals>
+  SignalSignatures extends CallSignature<Signals> = CallSignature<Signals>,
 > {
   private state: FastInstanceState<State, Attributes, Phases, Messages, Signals, Timers>;
 

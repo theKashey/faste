@@ -1,4 +1,4 @@
-import { InternalMachine } from './internal-machine';
+import type { InternalMachine } from './internal-machine.js';
 
 export type GuardArgument<Messages extends string, State, Attributes> = InternalMachine<
   State,

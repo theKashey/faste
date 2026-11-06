@@ -1,6 +1,6 @@
-import { InternalMachine } from './internal-machine';
-import { CallSignature } from './signatures';
-import { MAGIC_EVENTS } from '../types';
+import type { InternalMachine } from './internal-machine.js';
+import type { CallSignature } from './signatures.js';
+import type { MAGIC_EVENTS } from '../types.js';
 
 export type OnCallback<
   State,
@@ -11,7 +11,7 @@ export type OnCallback<
   Timers extends string,
   Args extends ReadonlyArray<any>,
   MessageSignatures extends CallSignature<Messages | MAGIC_EVENTS>,
-  SignalsSignatures extends CallSignature<Signals>
+  SignalsSignatures extends CallSignature<Signals>,
 > = (
   slots: InternalMachine<
     State,

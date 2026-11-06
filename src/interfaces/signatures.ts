@@ -17,6 +17,9 @@ export type StateChangeSignature<State> = {
   '@change': readonly [oldState: State];
 };
 
-export type ExtractSignature<Signatures, Key extends string, Fallback = []> = Signatures extends CallSignature<Key>
-  ? Signatures[Key]
-  : Fallback;
+export type ExtractSignature<Signatures, Key extends string, Fallback extends ReadonlyArray<any> = []> =
+  Signatures extends CallSignature<Key>
+    ? NonNullable<Signatures[Key]> extends ReadonlyArray<any>
+      ? NonNullable<Signatures[Key]>
+      : Fallback
+    : Fallback;

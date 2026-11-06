@@ -1,16 +1,16 @@
-import { FasteInstance } from './faste-executor';
-import { OnCallback } from './interfaces/callbacks';
-import { GuardCallback, Guards } from './interfaces/guards';
-import { Hooks } from './interfaces/hooks';
-import { MessageHandlers } from './interfaces/messages';
-import {
+import { FasteInstance } from './faste-executor.js';
+import type { OnCallback } from './interfaces/callbacks.js';
+import type { GuardCallback, Guards } from './interfaces/guards.js';
+import type { Hooks } from './interfaces/hooks.js';
+import type { MessageHandlers } from './interfaces/messages.js';
+import type {
   CallSignature,
   DefaultSignatures,
   EnterLeaveSignatures,
   ExtractSignature,
   StateChangeSignature,
-} from './interfaces/signatures';
-import { ENTER_LEAVE, MAGIC_EVENTS, STATE_CHANGE } from './types';
+} from './interfaces/signatures.js';
+import type { ENTER_LEAVE, MAGIC_EVENTS, STATE_CHANGE } from './types.js';
 
 export type PhaseTransition<T extends string, K> = { [key in T]: K };
 
@@ -24,14 +24,14 @@ type ExtractMessageArgument<
   Message extends string,
   MessageSignatures extends CallSignature<string>,
   State,
-  Phases
+  Phases,
 > = Message extends STATE_CHANGE
   ? [oldState: State]
   : Message extends ENTER_LEAVE
-  ? ExtractSignature<EnterLeaveSignatures<Phases>, Message>
-  : Message extends MAGIC_EVENTS
-  ? ExtractSignature<DefaultSignatures, Message>
-  : ExtractSignature<MessageSignatures, Message>;
+    ? ExtractSignature<EnterLeaveSignatures<Phases>, Message>
+    : Message extends MAGIC_EVENTS
+      ? ExtractSignature<DefaultSignatures, Message>
+      : ExtractSignature<MessageSignatures, Message>;
 
 /**
  * The Faste machine
@@ -65,7 +65,7 @@ export class Faste<
     MessageSignatures,
     SignalsSignatures
   >,
-  FasteMessageHandlers = MessageHandlers<State, Attributes, Phases, Messages, OnCall>
+  FasteMessageHandlers = MessageHandlers<State, Attributes, Phases, Messages, OnCall>,
 > {
   private fState: State;
   private fAttrs: Attributes;
