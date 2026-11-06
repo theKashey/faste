@@ -5,20 +5,12 @@
   <img src="./assets/table.png" alt="faste" height="233" align="center">
   <br/>
   <br/>
-  <a href="https://circleci.com/gh/theKashey/faste/tree/master">
-     <img src="https://img.shields.io/circleci/project/github/theKashey/faste/master.svg?style=flat-square)" alt="Build status">
-  </a>
-
-  <a href="https://codecov.io/github/thekashey/faste">
-   <img src="https://img.shields.io/codecov/c/github/thekashey/faste.svg?style=flat-square" />
+  <a href="https://github.com/theKashey/faste/actions/workflows/ci.yml">
+   <img src="https://github.com/theKashey/faste/actions/workflows/ci.yml/badge.svg?branch=master" alt="Build status">
   </a>
 
   <a href="https://www.npmjs.com/package/faste">
    <img src="https://img.shields.io/npm/v/faste.svg?style=flat-square" />
-  </a>
-
-  <a href="https://greenkeeper.io/">
-   <img alt="Greenkeeper badge" src="https://badges.greenkeeper.io/theKashey/faste.svg"/>
   </a>
 
   <br/>
@@ -489,6 +481,18 @@ This library combines ideas from [xstate](https://github.com/davidkpiano/xstate)
 and [redux-saga](https://github.com/redux-saga/redux-saga).
 The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
 developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
+
+# Releasing
+
+1. Bump `version` in `package.json` and commit it.
+2. Tag that commit `v<version>`, for example `git tag v2.0.1`.
+3. Push the commit and the tag: `git push origin master v2.0.1`.
+
+The tag starts [`release.yml`](.github/workflows/release.yml). It refuses a tag that differs from `package.json`, then
+builds, tests and publishes with provenance. No npm token is stored in the repository.
+
+One-time setup on npmjs.com: open the package's Settings, find Trusted Publisher, choose GitHub Actions, and enter
+owner `theKashey`, repository `faste`, workflow filename `release.yml`.
 
 # Licence
 

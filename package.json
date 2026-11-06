@@ -12,6 +12,7 @@
   "scripts": {
     "test": "jest",
     "test:ci": "jest --runInBand --coverage",
+    "typecheck": "tsc --noEmit -p .",
     "build": "lib-builder build && yarn size:report",
     "release": "yarn build && yarn test",
     "size": "size-limit",
@@ -19,7 +20,7 @@
     "lint": "lib-builder lint",
     "format": "lib-builder format",
     "update": "lib-builder update",
-    "prepack": "yarn build && yarn changelog",
+    "prepack": "lib-builder build",
     "prepare": "husky install",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "changelog:rewrite": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
