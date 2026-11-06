@@ -53,6 +53,9 @@
     "@size-limit/preset-small-lib": "^11.2.0",
     "@theuiteam/lib-builder": "^1.1.0",
     "@types/node": "^24",
+    "@variance-authority/cli": "0.24.1",
+    "@variance-authority/help": "0.24.1",
+    "@variance-authority/sense": "0.24.1",
     "size-limit": "^11.2.0"
   },
   "engines": {

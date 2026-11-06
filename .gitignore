@@ -6,4 +6,3 @@ node_modules/
 npm-debug.log
 yarn-error.log
 *.js
-!jest.config.js
