@@ -79,6 +79,7 @@ export class FasteInstance<
   private callDepth: number;
   private handlersOffValues: any;
   private _started = false;
+  private _destroyed = false;
   public name: string;
 
   private timers: Partial<Record<Timers, number | undefined>>;
@@ -131,6 +132,11 @@ export class FasteInstance<
   }
 
   private _transitTo(phase: Phases | MAGIC_PHASES) {
+    if (this._destroyed) {
+      // there could be callbacks running after destruction
+      return false;
+    }
+
     const oldPhase = this.state.phase;
     debug(this, 'transit', phase);
 
@@ -155,6 +161,8 @@ export class FasteInstance<
       callListeners(this.stateObservers, phase);
 
       this.__put('@enter', oldPhase, phase);
+    } else if (!this._started) {
+      this._initialize();
     }
 
     return true;
@@ -179,7 +187,11 @@ export class FasteInstance<
         }
 
         this.state.asyncSignals
-          ? invokeAsync(() => callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args))
+          ? invokeAsync(() => {
+              if (this._started) {
+                callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args);
+              }
+            })
           : callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args);
       },
       trigger: (event, ...args) => this.put(event, ...(args as any)),
@@ -249,16 +261,15 @@ export class FasteInstance<
   private __put(event: string, ...args: any[]): number {
     this.callDepth++;
 
-    const result = this.__direct_put(event, ...args);
-    this.callDepth--;
+    try {
+      return this.__direct_put(event, ...args);
+    } finally {
+      this.callDepth--;
 
-    if (BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
       if (!this.callDepth) {
         this._executeMessageQueue();
       }
     }
-
-    return result;
   }
 
   private __direct_put(event: string, ...args: any[]): number {
@@ -302,7 +313,7 @@ export class FasteInstance<
           const invocationResult = assertBusy(handler.callback(instance, ...args));
 
           if (isThenable(invocationResult)) {
-            invocationResult.catch(handleError);
+            Promise.resolve(invocationResult).catch(handleError);
           }
         } catch (e) {
           handleError(e);
@@ -332,12 +343,15 @@ export class FasteInstance<
   }
 
   _executeMessageQueue() {
-    while (this.messageQueue.length) {
-      const q = this.messageQueue;
-      this.messageQueue = [];
+    while (this.messageQueue.length && BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
+      const { message, args } = this.messageQueue.shift();
       this.callDepth++;
-      q.forEach((q) => this.__put(q.message, ...q.args));
-      this.callDepth--;
+
+      try {
+        this.__put(message, ...args);
+      } finally {
+        this.callDepth--;
+      }
     }
   }
 
@@ -359,6 +373,7 @@ export class FasteInstance<
     this.messageQueue = [];
     this.callDepth = 0;
     this._started = false;
+    this._destroyed = false;
 
     if (phase) {
       callListeners(this.stateObservers, START_PHASE);
@@ -534,5 +549,6 @@ export class FasteInstance<
     this.stateObservers = [];
     //
     this._started = false;
+    this._destroyed = true;
   }
 }
