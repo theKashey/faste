@@ -6,3 +6,4 @@ node_modules/
 npm-debug.log
 pnpm-debug.log
 *.js
+.variance/

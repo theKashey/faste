@@ -1,0 +1,15 @@
+{
+  "before": [
+    ".github/workflows"
+  ],
+  "suites": {
+    "unit": {
+      "kind": "unit",
+      "carry": "actions-cache",
+      "before": [
+        "jest.config.mjs",
+        "tsconfig.json"
+      ]
+    }
+  }
+}
