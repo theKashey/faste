@@ -3,8 +3,8 @@ export type CallSignature<Name extends string> = {
 };
 
 export type EnterLeaveSignatures<Phases> = {
-  '@enter': readonly [newPhase: Phases, oldPhase: Phases];
-  '@leave': readonly [oldPhase: Phases, oldPhase: Phases];
+  '@enter': readonly [oldPhase: Phases, newPhase: Phases];
+  '@leave': readonly [newPhase: Phases, oldPhase: Phases];
 };
 
 export type DefaultSignatures = {
