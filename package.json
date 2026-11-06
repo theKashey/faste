@@ -29,8 +29,8 @@
     "test": "jest",
     "test:ci": "jest --runInBand --coverage",
     "typecheck": "tsc --noEmit -p .",
-    "build": "lib-builder build && yarn size:report",
-    "release": "yarn build && yarn test",
+    "build": "lib-builder build && pnpm size:report",
+    "release": "pnpm build && pnpm test",
     "size": "size-limit",
     "size:report": "size-limit --json > .size.json",
     "lint": "lib-builder lint",
@@ -52,11 +52,27 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "^14.3.0",
     "@theuiteam/lib-builder": "^1.1.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
     "@variance-authority/cli": "0.24.1",
     "@variance-authority/help": "0.24.1",
     "@variance-authority/sense": "0.24.1",
-    "size-limit": "^14.3.0"
+    "conventional-changelog-cli": "^2.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^7.0.4",
+    "jest": "^30.5.2",
+    "lint-staged": "^13.1.0",
+    "prettier": "^3.9.10",
+    "size-limit": "^14.3.0",
+    "ts-jest": "^29.4.15",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=10"
@@ -80,5 +96,6 @@
     "tabWidth": 2,
     "semi": true,
     "singleQuote": true
-  }
+  },
+  "packageManager": "pnpm@12.18.0"
 }

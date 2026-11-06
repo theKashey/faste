@@ -13,17 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: yarn
+          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: The tag names the package version
         run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
-      - run: yarn install --frozen-lockfile
-      - run: yarn typecheck
-      - run: yarn build
-      - run: yarn test:ci
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test:ci
       # trusted publishing needs npm 11.5.1 or newer; dist is built above, so no lifecycle script runs here
       - run: npm install --global npm@^11.5.1
       - run: npm publish --provenance --access public --ignore-scripts
