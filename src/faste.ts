@@ -94,14 +94,24 @@ export class Faste<
   }
 
   private _alter({ state, attrs, timers }: { state?: any; attrs?: any; timers?: any }): any {
-    return new Faste(
+    const handlers: any = {};
+
+    Object.keys(this.fHandlers).forEach((message: Messages) => {
+      handlers[message] = [...this.fHandlers[message]];
+    });
+
+    const variant = new Faste(
       state || this.fState,
       attrs || this.fAttrs,
-      this.fHandlers,
-      this.fHooks,
-      this.fGuards as any,
+      handlers,
+      { ...this.fHooks },
+      [...this.fGuards] as any,
       timers || this.fTimers
     );
+
+    variant.asyncSignals = this.asyncSignals;
+
+    return variant;
   }
 
   /**
