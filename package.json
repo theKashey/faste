@@ -50,13 +50,13 @@
   "author": "Anton Korzunov (thekashey@gmail.com)",
   "license": "MIT",
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^11.2.0",
+    "@size-limit/preset-small-lib": "^14.3.0",
     "@theuiteam/lib-builder": "^1.1.0",
-    "@types/node": "^24",
+    "@types/node": "^26.6.6",
     "@variance-authority/cli": "0.24.1",
     "@variance-authority/help": "0.24.1",
     "@variance-authority/sense": "0.24.1",
-    "size-limit": "^11.2.0"
+    "size-limit": "^14.3.0"
   },
   "engines": {
     "node": ">=10"
