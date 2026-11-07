@@ -31,11 +31,19 @@ try {
 
   const check = "if (typeof m.faste !== 'function' || typeof m.setFasteDebug !== 'function') process.exit(1);";
 
-  for (const entry of ['faste', 'faste/dist/es5', 'faste/dist/es5/index.js']) {
+  for (const entry of ['faste', 'faste/dist/es5', 'faste/dist/es5/index', 'faste/dist/es5/index.js']) {
     run('node', ['-e', `const m = require('${entry}'); ${check}`]);
   }
 
-  for (const entry of ['faste', 'faste/dist/es2015', 'faste/dist/es2015/index.js']) {
+  for (const entry of [
+    'faste',
+    'faste/dist/es2015',
+    'faste/dist/es2015/index',
+    'faste/dist/es2015/index.js',
+    'faste/dist/es2019',
+    'faste/dist/es2019/index',
+    'faste/dist/es2019/index.js',
+  ]) {
     run('node', ['--input-type=module', '-e', `import * as m from '${entry}'; ${check}`]);
   }
 

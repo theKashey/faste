@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es2019",
+    "lib": ["dom", "es2019"],
+    "module": "es2015",
+    "moduleResolution": "node",
+    "verbatimModuleSyntax": true,
+    "outDir": "dist/es2019"
+  },
+  "include": ["src"]
+}

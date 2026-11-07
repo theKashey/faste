@@ -6,6 +6,7 @@
   "types": "dist/es5/index.d.ts",
   "jsnext:main": "dist/es2015/index.js",
   "module": "dist/es2015/index.js",
+  "module:es2019": "dist/es2019/index.js",
   "exports": {
     ".": {
       "import": {
@@ -19,7 +20,11 @@
     },
     "./dist/es5": "./dist/es5/index.js",
     "./dist/es2015": "./dist/es2015/index.js",
-    "./dist/*": "./dist/*",
+    "./dist/es2019": "./dist/es2019/index.js",
+    "./dist/*.d.ts": "./dist/*.d.ts",
+    "./dist/*.js": "./dist/*.js",
+    "./dist/*.json": "./dist/*.json",
+    "./dist/*": "./dist/*.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -29,14 +34,15 @@
     "test": "jest",
     "test:ci": "jest --runInBand --coverage",
     "typecheck": "tsc --noEmit -p .",
-    "build": "lib-builder build && pnpm size:report",
+    "build": "lib-builder build && pnpm build:es2019 && pnpm size:report",
+    "build:es2019": "tsc -p tsconfig.es2019.json && node -e \"fs.writeFileSync('dist/es2019/package.json','{\\\"type\\\": \\\"module\\\"}')\"",
     "release": "pnpm build && pnpm test",
     "size": "size-limit",
     "size:report": "size-limit --json > .size.json",
     "lint": "lib-builder lint",
     "format": "lib-builder format",
     "update": "lib-builder update",
-    "prepack": "lib-builder build",
+    "prepack": "lib-builder build && pnpm build:es2019",
     "prepare": "husky install",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "changelog:rewrite": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
