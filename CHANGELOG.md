@@ -10,6 +10,9 @@ Written from the git tags and commits: no version had release notes.
 - A destroyed machine stays destroyed: a late async `transitTo` no longer restarts it, and async signals no longer reach
   observers after `destroy()`.
 - `start()` with the machine's current phase starts it instead of leaving it stopped.
+- `start()` after `destroy()` is a new run: instances, hook callbacks, timers and async signals of the earlier run do
+  nothing to it, and a late rejection from that run is logged instead of reaching its `@error` handlers.
+- `start()` after `destroy()` is a full entry for any phase: `@enter`, observers and every hook, shared ones included.
 - An exception in a handler no longer leaves the message queue stuck.
 - The queue stops draining when a queued message enters `@busy` or `@locked`.
 - Builder variants own their handlers, hooks and guards, and keep `withAsyncSignals()`.
@@ -21,6 +24,9 @@ Written from the git tags and commits: no version had release notes.
 
 - `exports` map added. `dist/es5` and `dist/es2015` stay reachable.
 - `tslib` is no longer a dependency.
+- `destroy()` ends the run before it cleans up, so a hook's cleanup or an observer cannot act on the machine, and a
+  second `destroy()` does nothing.
+- `observe()` subscriptions survive `destroy()`, as `connect()` ones do, so they see the next run.
 - `module:es2019` removed: it pointed at a directory no build produced.
 
 ## 2.0.0 - 2023-03-18

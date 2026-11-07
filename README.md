@@ -158,7 +158,11 @@ Each instance of Faste will have:
 - `phase` - returns the current phase
 - `instance` - returns the current internal state.
 
-- `destroy` - exits the current state, terminates all hooks, and stops machine.
+- `destroy` - terminates all hooks and timers, drops queued messages, and stops the machine. It runs no `@leave`, and
+  `phase` keeps answering the last phase.
+- `start` - after `destroy`, begins a new run with a full entry: `@init`, `@enter`, hooks and observers, from no phase.
+  State, attributes, observers and connections stay. Whatever the earlier run created (an instance, a callback a hook
+  kept, a pending async signal) does nothing any more.
 
 - `namedBy(string)` - sets name of the instance (for debug).
 
