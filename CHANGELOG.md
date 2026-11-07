@@ -27,7 +27,7 @@ Written from the git tags and commits: no version had release notes.
 
 - `exports` map added. `dist/es5` and `dist/es2015` stay reachable.
 - `tslib` is no longer a dependency.
-- `engines` asks for Node 20.11 or newer, the oldest version the packed package is checked on. It used to say 10, which
+- `engines` asks for Node 22 or newer, the oldest version the packed package is checked on. It used to say 10, which
   nothing tested.
 - `destroy()` ends the run before it cleans up, so a hook's cleanup or an observer cannot act on the machine, and a
   second `destroy()` does nothing.
