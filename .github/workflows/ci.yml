@@ -34,14 +34,13 @@ jobs:
   # the record: every push to master saves one, and a pull request compares against it
   variance:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
           # the review diffs the change from the commit the record was made at
           fetch-depth: 0
+          # this job runs the pull request's code, which must find no token to use
+          persist-credentials: false
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -80,12 +79,11 @@ jobs:
         with:
           name: variance-review
           path: ${{ steps.carry.outputs.review }}
-      # a fork's token cannot comment; the step summary and the artifact still hold the review
-      - if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: gh pr comment "$PR" --body-file "$RUNNER_TEMP/review.md" --edit-last --create-if-none
+      - if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: variance-comment
+          path: ${{ runner.temp }}/review.md
       - if: github.event_name == 'push'
         env:
           AGAINST: ${{ steps.take.outputs.against-unit }}
@@ -105,3 +103,21 @@ jobs:
         with:
           path: ${{ steps.save.outputs.pushed-path }}
           key: ${{ steps.save.outputs.pushed-key }}
+
+  # holds the write token, so it runs nothing from the pull request: it only posts the review
+  comment:
+    needs: variance
+    # a fork's token cannot comment; the step summary and the artifact still hold the review
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: variance-comment
+          path: ${{ runner.temp }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/review.md" --edit-last --create-if-none
