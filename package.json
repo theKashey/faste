@@ -81,7 +81,7 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=20.11.0"
   },
   "keywords": [
     "state machine",

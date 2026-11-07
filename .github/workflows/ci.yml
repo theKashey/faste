@@ -31,7 +31,25 @@ jobs:
       - run: pnpm test:package
       - run: pnpm size
 
-  # the record: every push to master saves one, and a pull request compares against it
+  # builds on the current Node, and checks the packed package on the oldest one `engines` promises
+  package-minimum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - id: minimum
+        run: echo "node=$(node -p "require('./package.json').engines.node.replace('>=', '')")" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ steps.minimum.outputs.node }}
+      - run: node scripts/check-package.mjs
+
   variance:
     runs-on: ubuntu-latest
     steps:
