@@ -20,24 +20,32 @@ faste()
 
 ```js
 // common code - try to reverse engineer the change
-componentDidUpdate(oldProps)
+componentDidUpdate(oldProps);
 {
-    if (oldProps.enabled !== this.props.enabled) {
-        if (this.props.enabled) {
-            // I was enabled!
-        } else {
-            // I was disabled!
-        }
+  if (oldProps.enabled !== this.props.enabled) {
+    if (this.props.enabled) {
+      // I was enabled!
+    } else {
+      // I was disabled!
     }
+  }
 }
 
 // faste - use "magic" methods
 faste()
-    .on('@enter', ['disabled'], () => /* i was disabled */)
-    .on('@enter', ['enabled'], () => /* i was enabled */)
-    // or
-    .on('@leave', ['disabled'], () => /* i am no more disabled */)
-    .on('@leave', ['enabled'], () => /* i am no more enabled */)
+  .on('@enter', ['disabled'], () => {
+    /* i was disabled */
+  })
+  .on('@enter', ['enabled'], () => {
+    /* i was enabled */
+  })
+  // or
+  .on('@leave', ['disabled'], () => {
+    /* i am no more disabled */
+  })
+  .on('@leave', ['enabled'], () => {
+    /* i am no more enabled */
+  });
 ```
 
 ## Connected states
@@ -45,12 +53,15 @@ faste()
 https://codesandbox.io/s/5zx8zl91ll
 
 ```js
-// starts a timer when active
+// runs a timer while active, and stops it on leaving or on destroy
 const SignalSource = faste()
-  .on('@enter', ['active'], ({ setState, attrs, emit }) =>
-    setState({ interval: setInterval(() => emit('message'), attrs.duration) })
-  )
-  .on('@leave', ['active'], ({ state }) => clearInterval(state.interval));
+  .on('tick', ['active'], ({ emit }) => emit('message'))
+  .hooks({
+    tick: ({ attrs, trigger }) => {
+      const interval = setInterval(() => trigger('tick'), attrs.duration);
+      return () => clearInterval(interval);
+    },
+  });
 
 // responds to "message" by moving from tick to tock
 // emiting the current state outside
@@ -80,7 +91,10 @@ signalSource.connect(tickState);
 // "functionaly" connect tickes and display
 tickState.connect((message, payload) => displayState.put(message, payload));
 
-// RUN! start signal in active mode
+// RUN! a machine ignores messages until it starts, so start the receivers first
+displayState.start();
+tickState.start();
+// then start signal in active mode
 signalSource.start('active');
 ```
 
@@ -99,14 +113,13 @@ const state = faste()
   // just rethrow event
   .on('next', ({ trigger }) => trigger('tick'))
 
-  // on "green" - start timer
-  .on('@enter', ['green'], ({ setState, attrs, trigger }) =>
-    setState({
-      interval: setInterval(() => trigger('next'), attrs.duration),
-    })
-  )
-  // on "red" - stop timer
-  .on('@leave', ['red'], ({ state }) => clearInterval(state.interval));
+  // the timer runs as long as the machine does, and destroy stops it
+  .hooks({
+    next: ({ attrs, trigger }) => {
+      const interval = setInterval(() => trigger('next'), attrs.duration);
+      return () => clearInterval(interval);
+    },
+  });
 
 state.create().attrs({ duration: 1000 }).start('green');
 ```
@@ -207,6 +220,9 @@ const SignalSource = faste()
   .on('@leave', ['active'], ({ state }) => clearInterval(state.interval));
 ```
 
+`destroy` runs no `@leave`, so this interval outlives a machine destroyed while active. The two variants below stop on
+their own.
+
 Hook based
 
 ```tsx
@@ -227,9 +243,10 @@ const SignalSource = faste()
   .withTimers({
     T0: 1000,
   })
-  .on('on_T0', ({ emit, startTimer }) => {
+  .on('on_T0', ['active'], ({ emit, startTimer }) => {
     emit('message');
     startTimer('T0'); //restarts timers
   })
-  .on('@enter', ['active'], ({ startTimer }) => startTimer('T0'));
+  .on('@enter', ['active'], ({ startTimer }) => startTimer('T0'))
+  .on('@leave', ['active'], ({ stopTimer }) => stopTimer('T0'));
 ```
