@@ -273,17 +273,21 @@ export class FasteInstance<
 
   private __put(event: string, ...args: any[]): number {
     const run = this._run;
+    let failed = true;
     this.callDepth++;
 
     try {
-      return this.__direct_put(event, ...args);
+      const hits = this.__direct_put(event, ...args);
+      failed = false;
+
+      return hits;
     } finally {
       // a handler that restarted the machine left this delivery with nothing to unwind
       if (run === this._run) {
         this.callDepth--;
 
         if (!this.callDepth) {
-          this._executeMessageQueue();
+          this._executeMessageQueue(failed);
         }
       }
     }
@@ -374,16 +378,37 @@ export class FasteInstance<
     return hits;
   }
 
-  _executeMessageQueue() {
-    while (this.messageQueue.length && BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
+  /**
+   * delivers what is queued, one failure or not: the first failure of a delivery is the one its caller gets
+   * @param failed the delivery already has its failure, so none of these can be thrown
+   */
+  _executeMessageQueue(failed = false) {
+    const run = this._run;
+    let thrown = false;
+    let failure: unknown;
+
+    while (this._isLive(run) && this.messageQueue.length && BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
       const { message, args } = this.messageQueue.shift();
       this.callDepth++;
 
       try {
         this.__put(message, ...args);
+      } catch (error) {
+        if (failed || thrown) {
+          console.error('faste: a queued message failed after an earlier failure', error);
+        } else {
+          thrown = true;
+          failure = error;
+        }
       } finally {
-        this.callDepth--;
+        if (run === this._run) {
+          this.callDepth--;
+        }
       }
+    }
+
+    if (thrown) {
+      throw failure;
     }
   }
 

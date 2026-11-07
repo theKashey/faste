@@ -14,6 +14,9 @@ Written from the git tags and commits: no version had release notes.
   nothing to it, and a late rejection from that run is logged instead of reaching its `@error` handlers.
 - `start()` after `destroy()` is a full entry for any phase: `@enter`, observers and every hook, shared ones included.
 - An exception in a handler no longer leaves the message queue stuck.
+- A destroyed machine drops its queue, and no later handler of the same message runs.
+- A delivery throws its first failure. A queued failure no longer replaces it: the queue still drains, and each later
+  failure goes to `console.error`.
 - The queue stops draining when a queued message enters `@busy` or `@locked`.
 - Builder variants own their handlers, hooks and guards, and keep `withAsyncSignals()`.
 - A thenable returned by a handler no longer needs a `.catch` method.
