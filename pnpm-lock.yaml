@@ -185,14 +185,14 @@ importers:
         specifier: ^8.72.1
         version: 8.72.1(eslint@9.39.5(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.3)
       '@variance-authority/cli':
-        specifier: ^0.27.0
-        version: 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/node@26.6.6)(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+        specifier: ^0.28.0
+        version: 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/node@26.6.6)(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
       '@variance-authority/help':
-        specifier: ^0.27.0
-        version: 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+        specifier: ^0.28.0
+        version: 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
       '@variance-authority/sense':
-        specifier: ^0.27.0
-        version: 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+        specifier: ^0.28.0
+        version: 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
       conventional-changelog-cli:
         specifier: ^2.2.2
         version: 2.2.2
@@ -1689,29 +1689,29 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@variance-authority/cli@0.27.0':
-    resolution: {integrity: sha512-zVM6YXkiiIrbur9hz/tqfhswIkHY1cWX1Fp0B01+y9pWDHIrgasgiwjpT6UhQUD3+Xc4UCrS3sgsjbhsmc5Qaw==}
+  '@variance-authority/cli@0.28.0':
+    resolution: {integrity: sha512-KzwaUUu8RBRiUczwabvDVR4UtQs1qprm4ALgiRfyvaqfjdkc/gy9a6VhPuAIN2cN+OUbDFEXDOs0Gs+p2ja3og==}
     engines: {node: '>=22.15'}
     hasBin: true
 
-  '@variance-authority/core@0.27.0':
-    resolution: {integrity: sha512-5u9L8raV1d17ox5UOp6VhpI7zMQKjV2ppDz1yFQ6LmJe/7tMt7yGhu1DCYdzSDus04yb+VfysrW+CC6yhyBQIA==}
+  '@variance-authority/core@0.28.0':
+    resolution: {integrity: sha512-49b541oK14f3goUGRew9aIv0xafCW9iBR9UeXcORGXDQkg/CM68IfYCIVi0I6ws5dScWMl93ARBvxGdAW1SyLQ==}
     engines: {node: '>=22'}
 
-  '@variance-authority/distill@0.27.0':
-    resolution: {integrity: sha512-U4xXuE2gNklClP9iLm46DXQmJ0xtTE9UbJpm3G3mdpKhbE6FY4fC9aeFPJJqNEsnn68ajchN/MSy+CnsPmNMmA==}
+  '@variance-authority/distill@0.28.0':
+    resolution: {integrity: sha512-jVw79ZL1zRcXfTNfDOyEDXCaD9jXsRfPwTj9h1p3XyDi44MxeUerlrtt1LUl52ZWOGdDi2n0lnTK9/CaQIYa6A==}
     engines: {node: '>=22.15'}
 
-  '@variance-authority/dom@0.27.0':
-    resolution: {integrity: sha512-/TE6ewNU7+6r/1T1Z/1BXY2ypzMJTMjdHVTsM3KNEW30Z038V2esBG6HvII/Wdrf7XCZf7dJa5xCa7eWEZJO1Q==}
+  '@variance-authority/dom@0.28.0':
+    resolution: {integrity: sha512-0Gor0gnXKiSUkBbSdEW5wM9vz8UBTlymuJo3VdbjVx78g9xVfGlBZH/zoQBwy407EuC/jEhjLw+XWgA6Zs6PuA==}
     engines: {node: '>=22'}
 
-  '@variance-authority/event@0.27.0':
-    resolution: {integrity: sha512-v7/WxRbTrZF0r3Epl+qwjDQhmcw3ipmF30pWbtMxPFh0WFVlccqcJVSRYqTfH+HxqqRmvIEQs+3C75tx3rTTzA==}
+  '@variance-authority/event@0.28.0':
+    resolution: {integrity: sha512-5qSQXDMElNA3odvmRmuKcUU+WYLs1zAYZLCNv8Lc1UA/ZsaaULsUUj7SjdU1ptMFfHcsIxgebG8fHxs9n5h6tg==}
     engines: {node: '>=22'}
 
-  '@variance-authority/eyes@0.27.0':
-    resolution: {integrity: sha512-L3+QuunZ7AbU+YpoqWQooiel5OX8N5bIM2HmTUgAxuI6e8WUKikxrFHpLhYNLSkxA92zZ2EHU+zWQSmBXzKBwA==}
+  '@variance-authority/eyes@0.28.0':
+    resolution: {integrity: sha512-8lH/jJwlEeZXFb7dqPqoG4CMnSXhu7oDYs4XE54vfj375Czed9Jcf8BQsqPjjHDV87gQPYznLMPKarm8Qlu1Dg==}
     engines: {node: '>=22'}
     peerDependencies:
       '@playwright/test': '>=1.62 <2'
@@ -1725,42 +1725,42 @@ packages:
       '@testing-library/react':
         optional: true
 
-  '@variance-authority/help@0.27.0':
-    resolution: {integrity: sha512-uBZjJtu17KBuL3YlFQ60XDh5eG/UPLhdo34wfS3ZPwRCllK8YyG6pACG7GNZQaaI5irsG5zAYMeUrc2g/659WA==}
+  '@variance-authority/help@0.28.0':
+    resolution: {integrity: sha512-/dqduMwT54OIAVH6EESvPQzckUjRG2ofGyYwYiTjJ+Vq44WdL6nZwMl7UWWGEWRjhcI5uRs2YB9IEk3/fLAEvA==}
     engines: {node: '>=22.15'}
     hasBin: true
 
-  '@variance-authority/history@0.27.0':
-    resolution: {integrity: sha512-djp+JYLKs2HwwM0wWFSeMDeCGnvmEIVpiK8iQ/aRCdIvLTrOBH+mf0rAEZrh3jYdwoUz+WvKAspECW2N6yONxQ==}
+  '@variance-authority/history@0.28.0':
+    resolution: {integrity: sha512-7xnFjLhiQMShptbII9dtJsx3uMLWeWcwr44F6IrDCUKAetgUIX75VzZbHNKA3xS2lw28NuSkpRDzywrjwf3ZlA==}
     engines: {node: '>=22'}
 
-  '@variance-authority/mcp@0.27.0':
-    resolution: {integrity: sha512-BDp0/LVmfOlmNC7efQ3ulvcm7YTMCaYqJK5iYPSB057dIkBR64SOm9nwdUJD0dkgMTMdaAm3dOlpVMs3z0xXOg==}
+  '@variance-authority/mcp@0.28.0':
+    resolution: {integrity: sha512-c+8fzZPg+6LYXQ5OWbL08BbAmupK+9vHVqGQAwOuU0FQmJHON6uJCCg6P+Ir/FmJfbSq7E5Ilnb5XmU/lewrnA==}
     engines: {node: '>=22.15'}
     hasBin: true
 
-  '@variance-authority/observe@0.27.0':
-    resolution: {integrity: sha512-mO1XapyYaPJXrXQDamAL+SLaCUQWZ4ZkeOlDa2Co9OqJBuAoSHu5uDh4xE+YvXvcJvdwxwVJjMluLwJFtqgiAA==}
+  '@variance-authority/observe@0.28.0':
+    resolution: {integrity: sha512-65JlU9B5ldNN9ghzfznARv65AaOpmDUdN8CYpY9MthNLfs/WhIZejPDOpxnTMvf2Hqdz2G8Dcpi+sBxhQrqY0g==}
     engines: {node: '>=22'}
 
-  '@variance-authority/package@0.27.0':
-    resolution: {integrity: sha512-A9UNBfBScRXkS9kzZGff+QaAcZotpu/ItA4w7UbBdj4eOyxj/qdIiWL9Ten5e21+vFi48i4ROxiQN7GVz8TecA==}
+  '@variance-authority/package@0.28.0':
+    resolution: {integrity: sha512-+j7Qgt4CaJ6HitRTz1nzhKP7tzz9DwlH0MjVhJgNA9FuxjxpU6OI/BfJpM3z1w2HIBAxKHKuioonHPxv4uV5nw==}
     engines: {node: '>=22'}
 
-  '@variance-authority/playwright@0.27.0':
-    resolution: {integrity: sha512-gRXFr6QmEpzGjvex5A0Mk0Gd7wL/0Zqz1srrwnCixb/gqZUTxlWX0NKXFu34xb+Bg2jGUMDSYougWCOnTbIJQw==}
+  '@variance-authority/playwright@0.28.0':
+    resolution: {integrity: sha512-Mn1ARHs7so/H7pC+U3D0x6bk0Z3KCO4atVL4AJUbacHiS8dYL2C1Ei+7zL6AlQQp+d2c807kOO/Bz5I9qzZqPg==}
     engines: {node: '>=22'}
 
-  '@variance-authority/png-sharp@0.27.0':
-    resolution: {integrity: sha512-K+bh7ZFaMKHftFCJn5S0OpC8BaDdoTE8A4+faZYQQb/R5XmyLBaDjVEeA+gmJHGBLLkYcp5r6/ugNQ2wejqL0Q==}
+  '@variance-authority/png-sharp@0.28.0':
+    resolution: {integrity: sha512-0OK7NBtqrA0YFh8cWwcg+mIHytgg7uN6BLlyqBm6gDcbA+aH7NqO7T2SU3jlVGnxdH2oXiAvKuNB7e+XsRoHeQ==}
     engines: {node: '>=22'}
 
-  '@variance-authority/png@0.27.0':
-    resolution: {integrity: sha512-10vT49+tRgBebtP8Gjajxn4tJDaHPFlSD/6zlmDWRhiTJAPioSxlrNZvxZuPMLntl4KmvADkTFkZ2xLiDJBDOw==}
+  '@variance-authority/png@0.28.0':
+    resolution: {integrity: sha512-gFLcABr6KwFTJKIGP4+Zwrfd3w7sYnzXgUP6c86Mh4zJtMMghHAndmWc80Zcbn9vfGYDCRkzIqT5wqEOKuFSWA==}
     engines: {node: '>=22'}
 
-  '@variance-authority/presentation@0.27.0':
-    resolution: {integrity: sha512-TI+aNX14GGw1YcTnRrhq5eUwP+1T6dR8x4yr2uuPqtFo3F5b0BTp4u2/sUEk/GwcpA5vyjHgR9OKAvnDmgtCgw==}
+  '@variance-authority/presentation@0.28.0':
+    resolution: {integrity: sha512-dwhP3THCAl1qLPlWu5rfNzyVIw5X0bnb0F1KtGLqFRaCc7UrYs71Z3w8r5O/QGW+rTsONwrN5XGVOr/qD6r/Ow==}
     engines: {node: '>=22'}
     peerDependencies:
       '@playwright/test': '>=1.55 <2'
@@ -1768,54 +1768,54 @@ packages:
       '@playwright/test':
         optional: true
 
-  '@variance-authority/raster@0.27.0':
-    resolution: {integrity: sha512-ZUZZ/xak/zKDEd4HXUdrhx0qdAqhIN/4hdfDvhqI5AsagDfeX5i6i9X6Z+3bH6P0uVxW0tLd+TUHljPgezZAIg==}
+  '@variance-authority/raster@0.28.0':
+    resolution: {integrity: sha512-Uqm2e1RRMFYS70l73OIrp+wruAU/z4Skcg5gEiF+QqaWUywoe4TgNqPHHvSdzvlndKDKI6c8QN9Fn/D4n0DqLg==}
     engines: {node: '>=22'}
 
-  '@variance-authority/react@0.27.0':
-    resolution: {integrity: sha512-vw5qd81istk9dv+OD6csHj29kWv+eSOOBONqG0rb59ABNaA2XgE07dc2dGc037VCDe4M/wkN+xqc9Fwh8Um50g==}
+  '@variance-authority/react@0.28.0':
+    resolution: {integrity: sha512-E6/SoQ/eOjjjwqnHTIe1uJHXTOjsMO/+XPiZll7YIWX7HaeHG86Ych5Zh6Qf5V7WJn0CuHZ8pn1+u5JtoZyScQ==}
     engines: {node: '>=22'}
 
-  '@variance-authority/remote@0.27.0':
-    resolution: {integrity: sha512-ONIOil3uK1RKSs+dPorLLKKn/JmuHCeZGq6ckS1vJb3QdUMIs7seKhyKVodmnvY3qbrkX8/ct10CVeLEbflTWg==}
+  '@variance-authority/remote@0.28.0':
+    resolution: {integrity: sha512-AFJVoWc/F3vCndk/gMbn/S8GWIxel6SrQydcjXO1vmyw3AWpB1mjhTSF8b1PLRhA5JmxpoXMXHNjtJTMNR0zZQ==}
     engines: {node: '>=22'}
 
-  '@variance-authority/report@0.27.0':
-    resolution: {integrity: sha512-3kOhEUTOXcmJjbQxaddw2WbNgVbsVlbWFxs9j1EBtBDZ7RzmEam/dix/BnA3ZG8arARVonsYnGj7LugVXEEZJw==}
+  '@variance-authority/report@0.28.0':
+    resolution: {integrity: sha512-T8Z31hfqZ8UcyQt3HDiuRypjzmtPzqlvx4EiXfXCqV6QR26oz5l8sTSm/zl2iavNOGMvTwEiCvr6LbAqR65DEQ==}
     engines: {node: '>=22'}
 
-  '@variance-authority/scenario@0.27.0':
-    resolution: {integrity: sha512-b85dEt6Koo74XGMAyAqihKbmUboTXAnkZ8raUU9rJElFWKsrRPAZw/sfYnbMiptcSQU3ySJ9Zk+/EVeOR8oHSg==}
+  '@variance-authority/scenario@0.28.0':
+    resolution: {integrity: sha512-4BJ5dAgXJEQ0XvvwUaSWsn0a+yfIiaDDVnPD0xXv03zKF3jnA9NkccWRR/htJ1ES7RqJazgstwd3UWE1BlB7+g==}
     engines: {node: '>=22'}
 
-  '@variance-authority/sense-darwin-arm64@0.27.0':
-    resolution: {integrity: sha512-MyfR8EsX3zcxOscSzwFRTjmITwAFj/Nf/pLZ6+OIyq/pRMiGfkhR7YYnpfMQk/uhPGA6V7q3PbSmgD2niZuT+g==}
+  '@variance-authority/sense-darwin-arm64@0.28.0':
+    resolution: {integrity: sha512-ccmPWmorP1nwNBuz3EHIyZJnzNxdtO4s4JkDV4UOP3uUViF5+eoeuxiiLsHjWlmKEiqmfou30s4p/YsE8/LBEw==}
     engines: {node: '>=22.15'}
     cpu: [arm64]
     os: [darwin]
 
-  '@variance-authority/sense-linux-arm64-gnu@0.27.0':
-    resolution: {integrity: sha512-njSXzpjBLoU2shLWGof6mdKL8nYYIP5qLnpzBtHQ/2lQ4p8MXcN73wLkoFk99CjOYLjNe9RkR2EHt1FU/VFjiw==}
+  '@variance-authority/sense-linux-arm64-gnu@0.28.0':
+    resolution: {integrity: sha512-xlUNKqw2JYG6LIrhGjD7QC0mebZo+jjR1ludZoB5fsn3ro02Guaa8pgf8//TkeJVWpepsOnCjZrLdZ95zwtPMA==}
     engines: {node: '>=22.15'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@variance-authority/sense-linux-x64-gnu@0.27.0':
-    resolution: {integrity: sha512-32znvxVxReJYF947sMrCsNovVUFnsGWQZk6IrnrMFeD2T5i9JP13Vq9wd0b4BjQhqoRRc1Te7Wsv4BT7kaZcbA==}
+  '@variance-authority/sense-linux-x64-gnu@0.28.0':
+    resolution: {integrity: sha512-gCeAmEd4J9GF0iulTeo0u+ErJYMceaos/NLNPgMHd5JkrBa9F2m8DkFO9CzrCTipsxRIrsCfKafmPkzvGbvYaA==}
     engines: {node: '>=22.15'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@variance-authority/sense-win32-x64-msvc@0.27.0':
-    resolution: {integrity: sha512-/bBgrAHPSShMZ7IAsxyunornUxXZdfDc5z0WjnKvst96NAHsPn02qRbAnuoVdwJfLOyXPTsSBXjxOztEDvPYvw==}
+  '@variance-authority/sense-win32-x64-msvc@0.28.0':
+    resolution: {integrity: sha512-PuwbHWF1XT1+a49Yx5w9dh5TdxM9xotHCvUkGbXYgF+o0piw0g71H9k+F/3ZwME0zrbzYSBkD06bkhUyD3qpiw==}
     engines: {node: '>=22.15'}
     cpu: [x64]
     os: [win32]
 
-  '@variance-authority/sense@0.27.0':
-    resolution: {integrity: sha512-aqHcamZD6YOzA2ffJqt5+hz5x7z4XOy5ckqYieC+rPfAl+Q4XkwogWkFqFJjRGPstptPu7fUFU0IlTl5d+z2EQ==}
+  '@variance-authority/sense@0.28.0':
+    resolution: {integrity: sha512-3AEvJNd2c9xPN+SL3JAwDiVm8QGyTcHe2XNGlfd2RyRtKByhkVVLSipKAzIuVRbGxlatHiDrQiERVrT3KZEuYA==}
     engines: {node: '>=22.15'}
     peerDependencies:
       '@jest/globals': ^30.0.0
@@ -1832,20 +1832,20 @@ packages:
       vitest:
         optional: true
 
-  '@variance-authority/store@0.27.0':
-    resolution: {integrity: sha512-kY3MkRIJRhwSCY575AywyVzFAmz7MuZrVa/yxnFnxTntspYC1rsYHVT1TjviFOzeM4GqGyxpZPlCu6AUxkbt4Q==}
+  '@variance-authority/store@0.28.0':
+    resolution: {integrity: sha512-vtq0G+KXudISvg1tczn1bVhfpX/YzjdU1Zuv8nN4nHLzflbkBte7djqohyHfjvEvPpFigevFIZpOXNd/kUtaUQ==}
     engines: {node: '>=22'}
 
-  '@variance-authority/storybook@0.27.0':
-    resolution: {integrity: sha512-wPl6YqqXsg3gsqMhXjuP1kmn9Bs5yJReiPr7Rilf6nqos8vmaCzRRkUj5/ozMqpo5JX+RQqyk3WesoHJNeys9g==}
+  '@variance-authority/storybook@0.28.0':
+    resolution: {integrity: sha512-e09YoNYxBmQRFG4Xjw3e9cxNzuhiqRadPzbxxrz7gDZY16y/H+YQvOPSQ4zBmt5a7pL5jkIS2fH6dLWHtwoVEw==}
     engines: {node: '>=22'}
 
-  '@variance-authority/vantage@0.27.0':
-    resolution: {integrity: sha512-AUOkqp+QrJCK+4hqv7SiOmbHsbXY0LcZPkPCEG+1SdQKbiqisbpfHJN0BQTSJ4lQtvti5AnHGfx2vEX8vMqUAA==}
+  '@variance-authority/vantage@0.28.0':
+    resolution: {integrity: sha512-BuCUYXn/vJ1XQ5YRAOzK72RMy7jyDIuwz3leh2GRHLJ/fxFWXiCii9OaQ+YYUptP0nQbpIh+x6339id+o1U2tw==}
     engines: {node: '>=22'}
 
-  '@variance-authority/wire@0.27.0':
-    resolution: {integrity: sha512-hvlFB3DpgIMhH3z02pieiIs1c/R32ouKGv3UFaov3ryFnCccBpM0uDVgi6f7EDEcpFsVAddvIWyEx8oq5ylbhQ==}
+  '@variance-authority/wire@0.28.0':
+    resolution: {integrity: sha512-LxnK5RPp1VdvJwbC2hl7IBiwjXwoNB88yxS/D+rp2+YXET+JqthTTgs8TKA6omLO8f/19WzaZy5vJmIox908/g==}
     engines: {node: '>=22'}
 
   JSONStream@1.3.5:
@@ -5624,25 +5624,25 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.13.0':
     optional: true
 
-  '@variance-authority/cli@0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/node@26.6.6)(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
+  '@variance-authority/cli@0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/node@26.6.6)(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/distill': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/eyes': 0.27.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
-      '@variance-authority/help': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/history': 0.27.0
-      '@variance-authority/mcp': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/observe': 0.27.0
-      '@variance-authority/playwright': 0.27.0
-      '@variance-authority/png': 0.27.0
-      '@variance-authority/png-sharp': 0.27.0(@types/node@26.6.6)
-      '@variance-authority/raster': 0.27.0
-      '@variance-authority/remote': 0.27.0
-      '@variance-authority/report': 0.27.0
-      '@variance-authority/sense': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/store': 0.27.0(@types/node@26.6.6)
-      '@variance-authority/storybook': 0.27.0
-      '@variance-authority/vantage': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/distill': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/eyes': 0.28.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
+      '@variance-authority/help': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/history': 0.28.0
+      '@variance-authority/mcp': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/observe': 0.28.0
+      '@variance-authority/playwright': 0.28.0
+      '@variance-authority/png': 0.28.0
+      '@variance-authority/png-sharp': 0.28.0(@types/node@26.6.6)
+      '@variance-authority/raster': 0.28.0
+      '@variance-authority/remote': 0.28.0
+      '@variance-authority/report': 0.28.0
+      '@variance-authority/sense': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/store': 0.28.0(@types/node@26.6.6)
+      '@variance-authority/storybook': 0.28.0
+      '@variance-authority/vantage': 0.28.0
       ci-info: 4.4.0
     transitivePeerDependencies:
       - '@jest/globals'
@@ -5654,13 +5654,13 @@ snapshots:
       - jest-circus
       - vitest
 
-  '@variance-authority/core@0.27.0': {}
+  '@variance-authority/core@0.28.0': {}
 
-  '@variance-authority/distill@0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
+  '@variance-authority/distill@0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/eyes': 0.27.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
-      '@variance-authority/sense': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/eyes': 0.28.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
+      '@variance-authority/sense': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
     transitivePeerDependencies:
       - '@jest/globals'
       - '@playwright/test'
@@ -5670,28 +5670,28 @@ snapshots:
       - jest-circus
       - vitest
 
-  '@variance-authority/dom@0.27.0':
+  '@variance-authority/dom@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/event@0.27.0':
+  '@variance-authority/event@0.28.0':
     dependencies:
-      '@variance-authority/wire': 0.27.0
+      '@variance-authority/wire': 0.28.0
 
-  '@variance-authority/eyes@0.27.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))':
+  '@variance-authority/eyes@0.28.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/react': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/react': 0.28.0
     optionalDependencies:
       '@testing-library/dom': 10.4.2
       '@testing-library/react': 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
 
-  '@variance-authority/help@0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
+  '@variance-authority/help@0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/mcp': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/package': 0.27.0
-      '@variance-authority/sense': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/mcp': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/package': 0.28.0
+      '@variance-authority/sense': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
     transitivePeerDependencies:
       - '@jest/globals'
       - '@playwright/test'
@@ -5701,20 +5701,20 @@ snapshots:
       - jest-circus
       - vitest
 
-  '@variance-authority/history@0.27.0':
+  '@variance-authority/history@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/mcp@0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
+  '@variance-authority/mcp@0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/distill': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/eyes': 0.27.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
-      '@variance-authority/presentation': 0.27.0
-      '@variance-authority/report': 0.27.0
-      '@variance-authority/scenario': 0.27.0
-      '@variance-authority/sense': 0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
-      '@variance-authority/vantage': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/distill': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/eyes': 0.28.0(@testing-library/dom@10.4.2)(@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
+      '@variance-authority/presentation': 0.28.0
+      '@variance-authority/report': 0.28.0
+      '@variance-authority/scenario': 0.28.0
+      '@variance-authority/sense': 0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))
+      '@variance-authority/vantage': 0.28.0
     transitivePeerDependencies:
       - '@jest/globals'
       - '@playwright/test'
@@ -5724,117 +5724,117 @@ snapshots:
       - jest-circus
       - vitest
 
-  '@variance-authority/observe@0.27.0':
+  '@variance-authority/observe@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/png': 0.27.0
-      '@variance-authority/raster': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/png': 0.28.0
+      '@variance-authority/raster': 0.28.0
 
-  '@variance-authority/package@0.27.0':
+  '@variance-authority/package@0.28.0':
     dependencies:
       oxc-parser: 0.157.0
       oxc-resolver: 11.24.2
       tinyglobby: 0.2.17
       yaml: 2.9.1
 
-  '@variance-authority/playwright@0.27.0':
+  '@variance-authority/playwright@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/raster': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/raster': 0.28.0
       playwright: 1.65.0
 
-  '@variance-authority/png-sharp@0.27.0(@types/node@26.6.6)':
+  '@variance-authority/png-sharp@0.28.0(@types/node@26.6.6)':
     dependencies:
-      '@variance-authority/png': 0.27.0
+      '@variance-authority/png': 0.28.0
       sharp: 0.35.5(@types/node@26.6.6)
     transitivePeerDependencies:
       - '@types/node'
 
-  '@variance-authority/png@0.27.0':
+  '@variance-authority/png@0.28.0':
     dependencies:
       '@jsquash/webp': 1.5.0
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/raster': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/raster': 0.28.0
       pixelmatch: 7.2.0
       pngjs: 7.0.0
 
-  '@variance-authority/presentation@0.27.0':
+  '@variance-authority/presentation@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/dom': 0.27.0
-      '@variance-authority/react': 0.27.0
-      '@variance-authority/report': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/dom': 0.28.0
+      '@variance-authority/react': 0.28.0
+      '@variance-authority/report': 0.28.0
 
-  '@variance-authority/raster@0.27.0':
+  '@variance-authority/raster@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/react@0.27.0':
+  '@variance-authority/react@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/remote@0.27.0':
+  '@variance-authority/remote@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/raster': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/raster': 0.28.0
 
-  '@variance-authority/report@0.27.0':
+  '@variance-authority/report@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/scenario@0.27.0':
+  '@variance-authority/scenario@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/sense-darwin-arm64@0.27.0':
+  '@variance-authority/sense-darwin-arm64@0.28.0':
     optional: true
 
-  '@variance-authority/sense-linux-arm64-gnu@0.27.0':
+  '@variance-authority/sense-linux-arm64-gnu@0.28.0':
     optional: true
 
-  '@variance-authority/sense-linux-x64-gnu@0.27.0':
+  '@variance-authority/sense-linux-x64-gnu@0.28.0':
     optional: true
 
-  '@variance-authority/sense-win32-x64-msvc@0.27.0':
+  '@variance-authority/sense-win32-x64-msvc@0.28.0':
     optional: true
 
-  '@variance-authority/sense@0.27.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
+  '@variance-authority/sense@0.28.0(@jest/globals@30.5.2(supports-color@8.1.1))(jest-circus@30.5.2(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/package': 0.27.0
-      '@variance-authority/wire': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/package': 0.28.0
+      '@variance-authority/wire': 0.28.0
       oxc-parser: 0.157.0
       oxc-resolver: 11.24.2
       picomatch: 4.0.7
     optionalDependencies:
       '@jest/globals': 30.5.2(supports-color@8.1.1)
-      '@variance-authority/sense-darwin-arm64': 0.27.0
-      '@variance-authority/sense-linux-arm64-gnu': 0.27.0
-      '@variance-authority/sense-linux-x64-gnu': 0.27.0
-      '@variance-authority/sense-win32-x64-msvc': 0.27.0
+      '@variance-authority/sense-darwin-arm64': 0.28.0
+      '@variance-authority/sense-linux-arm64-gnu': 0.28.0
+      '@variance-authority/sense-linux-x64-gnu': 0.28.0
+      '@variance-authority/sense-win32-x64-msvc': 0.28.0
       jest: 30.5.2(@types/node@26.6.6)(supports-color@8.1.1)
       jest-circus: 30.5.2(supports-color@8.1.1)
 
-  '@variance-authority/store@0.27.0(@types/node@26.6.6)':
+  '@variance-authority/store@0.28.0(@types/node@26.6.6)':
     dependencies:
-      '@variance-authority/core': 0.27.0
-      '@variance-authority/png': 0.27.0
-      '@variance-authority/png-sharp': 0.27.0(@types/node@26.6.6)
-      '@variance-authority/raster': 0.27.0
-      '@variance-authority/report': 0.27.0
+      '@variance-authority/core': 0.28.0
+      '@variance-authority/png': 0.28.0
+      '@variance-authority/png-sharp': 0.28.0(@types/node@26.6.6)
+      '@variance-authority/raster': 0.28.0
+      '@variance-authority/report': 0.28.0
     transitivePeerDependencies:
       - '@types/node'
 
-  '@variance-authority/storybook@0.27.0':
+  '@variance-authority/storybook@0.28.0':
     dependencies:
-      '@variance-authority/core': 0.27.0
+      '@variance-authority/core': 0.28.0
 
-  '@variance-authority/vantage@0.27.0':
+  '@variance-authority/vantage@0.28.0':
     dependencies:
-      '@variance-authority/event': 0.27.0
-      '@variance-authority/wire': 0.27.0
+      '@variance-authority/event': 0.28.0
+      '@variance-authority/wire': 0.28.0
 
-  '@variance-authority/wire@0.27.0': {}
+  '@variance-authority/wire@0.28.0': {}
 
   JSONStream@1.3.5:
     dependencies:
