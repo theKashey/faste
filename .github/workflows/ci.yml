@@ -52,90 +52,21 @@ jobs:
 
   variance:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # the checkout, and the badge
+      pull-requests: write # the comment
     steps:
       - uses: actions/checkout@v7
         with:
-          # the review diffs the change from the commit the record was made at
-          fetch-depth: 0
-          # this job runs the pull request's code, which must find no token to use
-          persist-credentials: false
+          fetch-depth: 0 # the review reads the change from where it starts
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 24 # the CLI needs 22.15 or newer
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - id: carry
-        run: pnpm exec variance carry restore --format github >> "$GITHUB_OUTPUT"
-      - uses: actions/cache/restore@v6
+      - uses: Variance-Authority/variance-authority/.github/actions/variance/review@7cc5fee52081a01971529320d5ca3b310caa2188 # TODO: Variance-Authority/action/review@v1 once released
         with:
-          path: ${{ steps.carry.outputs.suite-unit-path }}
-          key: ${{ steps.carry.outputs.suite-unit-key }}
-          restore-keys: ${{ steps.carry.outputs.suite-unit-restore-keys }}
-      - if: steps.carry.outputs.pushed-key != ''
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ steps.carry.outputs.pushed-path }}
-          key: ${{ steps.carry.outputs.pushed-key }}
-          restore-keys: ${{ steps.carry.outputs.pushed-restore-keys }}
-      # sets the mainline's record aside, so the review compares against it and not the last push
-      - id: take
-        run: pnpm exec variance carry take --format github >> "$GITHUB_OUTPUT"
-      - run: pnpm exec jest
-      - if: ${{ !cancelled() }}
-        run: pnpm exec variance index
-      - if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        env:
-          BASE: ${{ steps.carry.outputs.base }}
-          OUT: ${{ steps.carry.outputs.review }}
-          AGAINST: ${{ steps.take.outputs.against-unit }}
-        run: |
-          pnpm exec variance review --since "$BASE" --suite unit --coverage ${AGAINST:+--against "$AGAINST"} --out "$OUT" --format markdown > "$RUNNER_TEMP/review.md"
-          cat "$RUNNER_TEMP/review.md" >> "$GITHUB_STEP_SUMMARY"
-      - if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: variance-review
-          path: ${{ steps.carry.outputs.review }}
-      - if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: variance-comment
-          path: ${{ runner.temp }}/review.md
-      - if: github.event_name == 'push'
-        env:
-          AGAINST: ${{ steps.take.outputs.against-unit }}
-        run: pnpm exec variance coverage --suite unit ${AGAINST:+--against "$AGAINST"} >> "$GITHUB_STEP_SUMMARY"
-      - id: save
-        if: ${{ !cancelled() }}
-        run: pnpm exec variance carry save --format github >> "$GITHUB_OUTPUT"
-      - if: ${{ success() && steps.save.outputs.suite-unit-key != '' }}
-        uses: actions/cache/save@v6
-        with:
-          path: ${{ steps.save.outputs.suite-unit-path }}
-          key: ${{ steps.save.outputs.suite-unit-key }}
-      - if: ${{ !cancelled() && steps.save.outputs.pushed-key != '' }}
-        run: pnpm exec variance carry keep
-      - if: ${{ !cancelled() && steps.save.outputs.pushed-key != '' }}
-        uses: actions/cache/save@v6
-        with:
-          path: ${{ steps.save.outputs.pushed-path }}
-          key: ${{ steps.save.outputs.pushed-key }}
-
-  # holds the write token, so it runs nothing from the pull request: it only posts the review
-  comment:
-    needs: variance
-    # a fork's token cannot comment; the step summary and the artifact still hold the review
-    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: variance-comment
-          path: ${{ runner.temp }}
-      - env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/review.md" --edit-last --create-if-none
+          suite: unit
+          test: pnpm exec jest
+          badge: 'true'

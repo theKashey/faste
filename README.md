@@ -9,6 +9,10 @@
    <img src="https://github.com/theKashey/faste/actions/workflows/ci.yml/badge.svg?branch=master" alt="Build status">
   </a>
 
+  <a href="https://github.com/theKashey/faste/actions">
+   <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FtheKashey%2Ffaste%2Frefs%2Fbadge%2Fmaster%2Fregions-run.json" alt="regions run">
+  </a>
+
   <a href="https://www.npmjs.com/package/faste">
    <img src="https://img.shields.io/npm/v/faste.svg?style=flat-square" />
   </a>
