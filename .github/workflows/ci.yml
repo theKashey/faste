@@ -65,7 +65,7 @@ jobs:
           node-version: 24 # the CLI needs 22.15 or newer
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: Variance-Authority/variance-authority/.github/actions/variance/review@7cc5fee52081a01971529320d5ca3b310caa2188 # TODO: Variance-Authority/action/review@v1 once released
+      - uses: Variance-Authority/action/review@v1
         with:
           suite: unit
           test: pnpm exec jest
