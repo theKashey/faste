@@ -81,6 +81,10 @@ export class FasteInstance<
   private _started = false;
   private _destroyed = false;
   /**
+   * a run has begun, so starting again has one to end first
+   */
+  private _begun = false;
+  /**
    * names the current run: everything created in a run keeps its number, and is dead once it differs
    */
   private _run = 0;
@@ -139,9 +143,19 @@ export class FasteInstance<
     return this._trySingleGuard(oldPhase, true) && this._trySingleGuard(newPhase, false);
   }
 
+  /**
+   * moves the run to a phase; every callout it makes can end the run, and the moves after a callout that did are not made
+   * @returns false when a guard rejected the phase, or the run ended before the phase was entered
+   */
   private _transitTo(phase: Phases | MAGIC_PHASES) {
+    const run = this._run;
+    const isLive = () => this._isLive(run);
     const oldPhase = this.state.phase;
     debug(this, 'transit', phase);
+
+    if (!isLive()) {
+      return false;
+    }
 
     if (oldPhase != phase) {
       if (!this._tryGuard(oldPhase, phase)) {
@@ -154,15 +168,27 @@ export class FasteInstance<
         this.__put('@leave', phase, oldPhase);
       }
 
+      if (!isLive()) {
+        return false;
+      }
+
       this.__performHookOn(phase);
+
+      if (!isLive()) {
+        return false;
+      }
+
       this.state.phase = phase;
 
       if (!this._started) {
         this._initialize();
       }
 
-      callListeners(this.stateObservers, phase);
+      if (isLive()) {
+        callListeners(this.stateObservers, phase);
+      }
 
+      // a dead run delivers nothing
       this.__put('@enter', oldPhase, phase);
     } else if (!this._started) {
       this._initialize();
@@ -239,13 +265,15 @@ export class FasteInstance<
     const oldHandlers = !initialState ? this._collectHandlers(this.state.phase) : {};
     const newHandlers = initialState || nextPhase ? this._collectHandlers(nextPhase) : {};
 
+    const run = this._run;
     const instance = this._createInstance({
       phase: this.state.phase,
     });
     const h = this.handlers.hooks;
 
     Object.keys(newHandlers).forEach((handler: Messages) => {
-      if (!oldHandlers[handler] && h[handler]) {
+      // a hook that ended the run leaves the rest off: nothing would turn them off again
+      if (!oldHandlers[handler] && h[handler] && this._isLive(run)) {
         debug(this, 'hook-on', h[handler]);
 
         this.handlersOffValues[handler] = h[handler]({
@@ -253,22 +281,29 @@ export class FasteInstance<
           phase: undefined,
           message: handler,
         });
+
+        if (!this._isLive(run)) {
+          // the hook ended the run as it turned on, after destroy turned the others off
+          this._hookOff(handler, instance);
+        }
       }
     });
 
     Object.keys(oldHandlers).forEach((handler: Messages) => {
-      if (!newHandlers[handler] && h[handler] && this.handlersOffValues[handler]) {
-        debug(this, 'hook-off', h[handler]);
-
-        this.handlersOffValues[handler]({
-          ...instance,
-          phase: undefined,
-          message: handler,
-        });
-
-        this.handlersOffValues[handler] = undefined;
+      if (!newHandlers[handler]) {
+        this._hookOff(handler, instance);
       }
     });
+  }
+
+  private _hookOff(handler: Messages, instance: object) {
+    const off = this.handlersOffValues[handler];
+    this.handlersOffValues[handler] = undefined;
+
+    if (off) {
+      debug(this, 'hook-off', handler);
+      off({ ...instance, phase: undefined, message: handler });
+    }
   }
 
   private __put(event: string, ...args: any[]): number {
@@ -427,6 +462,11 @@ export class FasteInstance<
    * @param phase
    */
   start(phase?: Phases): this {
+    if (this._begun && !this._destroyed) {
+      // the running run ends the way destroy ends it, so nothing of it reaches the new one
+      this.destroy();
+    }
+
     if (this._destroyed) {
       // a new run: nothing of the last one counts as active, and every handle of it is dead
       this._run++;
@@ -434,6 +474,8 @@ export class FasteInstance<
       this.state.phase = undefined;
     }
 
+    const run = this._run;
+    this._begun = true;
     this.messageQueue = [];
     this.callDepth = 0;
     this._started = false;
@@ -441,7 +483,7 @@ export class FasteInstance<
     if (phase) {
       callListeners(this.stateObservers, START_PHASE);
 
-      if (!this._transitTo(phase)) {
+      if (!this._transitTo(phase) && this._isLive(run)) {
         throw new Error('Faste machine initialization failed - phase was rejected');
       }
     } else {
@@ -593,9 +635,13 @@ export class FasteInstance<
   }
 
   private _initialize() {
+    const run = this._run;
     this._started = true;
     this.__put('@init');
-    this.__performHookOn(null, true);
+
+    if (this._isLive(run)) {
+      this.__performHookOn(null, true);
+    }
   }
   /**
    * destroys the machine
@@ -616,7 +662,9 @@ export class FasteInstance<
 
     this.timers = {};
 
-    this.__performHookOn(undefined);
+    // every hook that is on goes off, whichever phase turned it on
+    const instance = this._createInstance({ phase: this.state.phase });
+    Object.keys(this.handlersOffValues).forEach((handler: Messages) => this._hookOff(handler, instance));
     callListeners(this.stateObservers, STOP_PHASE);
   }
 }

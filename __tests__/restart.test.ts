@@ -358,3 +358,164 @@ describe('start after destroy', () => {
     expect(observer).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('a transition whose run ends part way', () => {
+  it('turns on no hook and keeps the phase when @leave destroys the machine', () => {
+    const hookOn = jest.fn();
+    const m = machine()
+      .on('@leave', () => {
+        m.destroy();
+      })
+      .on('go', ['a'], ({ transitTo }) => transitTo('b'))
+      .on('hit', ['b'], () => undefined)
+      .hooks({ hit: () => hookOn() })
+      .create()
+      .start('a');
+
+    m.put('go');
+
+    expect(hookOn).not.toHaveBeenCalled();
+    expect(m.phase()).toBe('a');
+  });
+
+  it('does not finish in the new run when @leave restarts the machine', () => {
+    const entered = jest.fn();
+    let restart = true;
+    const m = machine()
+      .on('@leave', () => {
+        if (restart) {
+          restart = false;
+          m.destroy();
+          m.start('a');
+        }
+      })
+      .on('@enter', (_, __, phase) => entered(phase))
+      .on('go', ['a'], ({ transitTo }) => transitTo('b'))
+      .create()
+      .start('a');
+
+    entered.mockClear();
+    m.put('go');
+
+    expect(entered.mock.calls).toEqual([['a']]);
+    expect(m.phase()).toBe('a');
+  });
+
+  it('turns on no hook when @init destroys the machine', () => {
+    const hookOn = jest.fn();
+    const m = machine()
+      .on('@init', () => {
+        m.destroy();
+      })
+      .on('hit', () => undefined)
+      .hooks({ hit: () => hookOn() })
+      .create();
+
+    m.start();
+
+    expect(hookOn).not.toHaveBeenCalled();
+    expect(m.isStarted()).toBe(false);
+  });
+
+  it('turns off a hook that destroyed the machine as it turned on', () => {
+    const hookOff = jest.fn();
+    let destroy = true;
+    const m = machine()
+      .on('hit', () => undefined)
+      .hooks({
+        hit: () => {
+          if (destroy) {
+            destroy = false;
+            m.destroy();
+          }
+
+          return hookOff;
+        },
+      })
+      .create();
+
+    m.start('a');
+    expect(hookOff).toHaveBeenCalledTimes(1);
+
+    m.start('a');
+    expect(hookOff).toHaveBeenCalledTimes(1);
+  });
+
+  it('enters nothing when an observer destroys the machine as it starts', () => {
+    const hookOn = jest.fn();
+    const m = machine()
+      .on('hit', ['a'], () => undefined)
+      .hooks({ hit: () => hookOn() })
+      .create();
+
+    m.observe((phase) => {
+      if (phase === '@start') {
+        m.destroy();
+      }
+    });
+
+    expect(() => m.start('a')).not.toThrow();
+    expect(hookOn).not.toHaveBeenCalled();
+  });
+});
+
+describe('start on a running machine', () => {
+  it('ends the running run first, so every hook it turned on goes off', () => {
+    const hookOn = jest.fn();
+    const hookOff = jest.fn();
+    const observer = jest.fn();
+    const m = machine()
+      .on('hit', () => undefined)
+      .hooks({
+        hit: () => {
+          hookOn();
+
+          return hookOff;
+        },
+      })
+      .create()
+      .start('a');
+
+    m.observe(observer);
+    m.start('a');
+
+    expect(hookOn).toHaveBeenCalledTimes(2);
+    expect(hookOff).toHaveBeenCalledTimes(1);
+    expect(observer.mock.calls).toEqual([['@destroy'], ['@start'], ['a']]);
+  });
+
+  it('leaves the delivery of the new run working when a handler starts it again', () => {
+    const hit = jest.fn();
+    const m = machine()
+      .on('go', () => {
+        m.start('a');
+      })
+      .on('hit', () => hit())
+      .create()
+      .start('a');
+
+    m.put('go');
+    m.put('hit');
+
+    expect(hit).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives a handle or a timer of the earlier run nothing to act on', () => {
+    jest.useFakeTimers();
+
+    const hit = jest.fn();
+    const m = machine()
+      .on('on_T', () => hit())
+      .create()
+      .start('a');
+    const stale = m.instance();
+
+    stale.startTimer('T');
+    m.start('a');
+    stale.setState({ n: 5 });
+    jest.advanceTimersByTime(100);
+
+    expect(m.instance().state.n).toBe(0);
+    expect(hit).not.toHaveBeenCalled();
+  });
+});

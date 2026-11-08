@@ -13,6 +13,10 @@ Written from the git tags and commits: no version had release notes.
 - `start()` after `destroy()` is a new run: instances, hook callbacks, timers and async signals of the earlier run do
   nothing to it, and a late rejection from that run is logged instead of reaching its `@error` handlers.
 - `start()` after `destroy()` is a full entry for any phase: `@enter`, observers and every hook, shared ones included.
+- `start()` on a running machine destroys it first, so the new run starts clean: its hooks go off, its timers stop and
+  its handles do nothing. It used to keep them, and turn the phase-free hooks on a second time.
+- A transition stops where its run ends: when `@leave`, `@init`, a hook or an observer destroys or restarts the
+  machine, the transition turns on no further hook and does not finish in the new run.
 - An exception in a handler no longer leaves the message queue stuck.
 - A destroyed machine drops its queue, and no later handler of the same message runs.
 - A delivery throws its first failure. A queued failure no longer replaces it: the queue still drains, and each later
