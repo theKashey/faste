@@ -3,8 +3,8 @@ export type CallSignature<Name extends string> = {
 };
 
 export type EnterLeaveSignatures<Phases> = {
-  '@enter': readonly [newPhase: Phases, oldPhase: Phases];
-  '@leave': readonly [oldPhase: Phases, oldPhase: Phases];
+  '@enter': readonly [oldPhase: Phases, newPhase: Phases];
+  '@leave': readonly [newPhase: Phases, oldPhase: Phases];
 };
 
 export type DefaultSignatures = {
@@ -17,6 +17,9 @@ export type StateChangeSignature<State> = {
   '@change': readonly [oldState: State];
 };
 
-export type ExtractSignature<Signatures, Key extends string, Fallback = []> = Signatures extends CallSignature<Key>
-  ? Signatures[Key]
-  : Fallback;
+export type ExtractSignature<Signatures, Key extends string, Fallback extends ReadonlyArray<any> = []> =
+  Signatures extends CallSignature<Key>
+    ? NonNullable<Signatures[Key]> extends ReadonlyArray<any>
+      ? NonNullable<Signatures[Key]>
+      : Fallback
+    : Fallback;

@@ -4,5 +4,6 @@ node_modules/
 .DS_Store
 .idea
 npm-debug.log
-yarn-error.log
+pnpm-debug.log
 *.js
+.variance/

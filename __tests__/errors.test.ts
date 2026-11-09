@@ -33,7 +33,7 @@ describe('Faste error handling', () => {
   });
 
   describe('async', () => {
-    it.only('does not handles async error', async () => {
+    it('does not handles async error', async () => {
       const trap = jest.fn();
       const machine = asyncMachineFactory().on('@error', (_, error) => {
         trap(error);

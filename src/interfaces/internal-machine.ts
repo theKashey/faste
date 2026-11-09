@@ -1,5 +1,5 @@
-import { CallSignature, ExtractSignature } from './signatures';
-import { MAGIC_EVENTS, MAGIC_PHASES } from '../types';
+import type { CallSignature, ExtractSignature } from './signatures.js';
+import type { MAGIC_EVENTS, MAGIC_PHASES } from '../types.js';
 
 export type InternalMachine<
   State,
@@ -9,7 +9,7 @@ export type InternalMachine<
   Signals extends string,
   Timers extends string,
   MessageSignatures extends CallSignature<Messages>,
-  SignalSignatures extends CallSignature<Signals>
+  SignalSignatures extends CallSignature<Signals>,
 > = Readonly<{
   /**
    * machine attributes

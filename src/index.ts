@@ -1,4 +1,4 @@
-import { Faste } from './faste';
+import { Faste } from './faste.js';
 
 /**
  * Creates a faste machine
@@ -6,3 +6,5 @@ import { Faste } from './faste';
 export function faste(): Faste {
   return new Faste();
 }
+
+export { setFasteDebug } from './helpers/debug.js';

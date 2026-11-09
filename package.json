@@ -6,24 +6,47 @@
   "types": "dist/es5/index.d.ts",
   "jsnext:main": "dist/es2015/index.js",
   "module": "dist/es2015/index.js",
+  "module:es2019": "dist/es2019/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/es2015/index.d.ts",
+        "default": "./dist/es2015/index.js"
+      },
+      "require": {
+        "types": "./dist/es5/index.d.ts",
+        "default": "./dist/es5/index.js"
+      }
+    },
+    "./dist/es5": "./dist/es5/index.js",
+    "./dist/es2015": "./dist/es2015/index.js",
+    "./dist/es2019": "./dist/es2019/index.js",
+    "./dist/*.d.ts": "./dist/*.d.ts",
+    "./dist/*.js": "./dist/*.js",
+    "./dist/*.json": "./dist/*.json",
+    "./dist/*": "./dist/*.js",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "lib-builder dev",
     "test": "jest",
-    "test:ci": "jest --runInBand --coverage",
-    "build": "lib-builder build && yarn size:report",
-    "release": "yarn build && yarn test",
+    "test:ci": "jest --runInBand",
+    "typecheck": "tsc --noEmit -p .",
+    "build": "lib-builder build && pnpm build:es2019 && pnpm size:report",
+    "build:es2019": "tsc -p tsconfig.es2019.json && node -e \"fs.writeFileSync('dist/es2019/package.json','{\\\"type\\\": \\\"module\\\"}')\"",
+    "release": "pnpm build && pnpm test",
     "size": "size-limit",
     "size:report": "size-limit --json > .size.json",
     "lint": "lib-builder lint",
     "format": "lib-builder format",
     "update": "lib-builder update",
-    "prepack": "yarn build && yarn changelog",
+    "prepack": "lib-builder build && pnpm build:es2019",
     "prepare": "husky install",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "changelog:rewrite": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+    "changelog:rewrite": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "test:package": "node scripts/check-package.mjs"
   },
   "repository": "git+https://github.com/theKashey/faste.git",
   "bugs": {
@@ -33,21 +56,37 @@
   "author": "Anton Korzunov (thekashey@gmail.com)",
   "license": "MIT",
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^8.1.2",
-    "@theuiteam/lib-builder": "^0.2.3",
-    "@types/node": "10.3.4"
+    "@size-limit/preset-small-lib": "^14.3.0",
+    "@theuiteam/lib-builder": "^1.1.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
+    "@variance-authority/cli": "^0.28.0",
+    "@variance-authority/help": "^0.28.0",
+    "@variance-authority/sense": "^0.28.0",
+    "conventional-changelog-cli": "^2.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^7.0.4",
+    "jest": "^30.5.2",
+    "lint-staged": "^13.1.0",
+    "prettier": "^3.9.10",
+    "size-limit": "^14.3.0",
+    "ts-jest": "^29.4.15",
+    "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=22.0.0"
   },
   "keywords": [
     "state machine",
     "state management"
   ],
-  "dependencies": {
-    "tslib": "^1.9.3"
-  },
-  "module:es2019": "dist/es2019/index.js",
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --write",
@@ -63,5 +102,6 @@
     "tabWidth": 2,
     "semi": true,
     "singleQuote": true
-  }
+  },
+  "packageManager": "pnpm@12.18.0"
 }

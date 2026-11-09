@@ -1,12 +1,13 @@
-import { callListeners, invokeAsync } from './helpers/call';
-import { debug } from './helpers/debug';
-import { isThenable } from './helpers/thenable';
-import { Guards } from './interfaces/guards';
-import { Hooks } from './interfaces/hooks';
-import { InternalMachine } from './interfaces/internal-machine';
-import { MessageHandler, MessagePhase } from './interfaces/messages';
-import { CallSignature, DefaultSignatures, ExtractSignature } from './interfaces/signatures';
-import { MAGIC_EVENTS, MAGIC_PHASES } from './types';
+import { callListeners, invokeAsync } from './helpers/call.js';
+import { debug } from './helpers/debug.js';
+import { isThenable } from './helpers/thenable.js';
+import type { Guards } from './interfaces/guards.js';
+import type { Hooks } from './interfaces/hooks.js';
+import type { InternalMachine } from './interfaces/internal-machine.js';
+import type { MessageHandler, MessagePhase } from './interfaces/messages.js';
+import type { CallSignature, ExtractSignature } from './interfaces/signatures.js';
+import type { DefaultSignatures } from './interfaces/signatures.js';
+import type { MAGIC_EVENTS, MAGIC_PHASES } from './types.js';
 
 type AnyConnectCall<Signals extends string> = (event: Signals, ...args: any[]) => void;
 
@@ -33,7 +34,7 @@ export type FastInstanceState<
   Phases,
   Messages extends string,
   Signals extends string,
-  Timers extends string
+  Timers extends string,
 > = {
   state: State;
   attrs: Attributes;
@@ -66,7 +67,7 @@ export class FasteInstance<
   FasteGuards extends Guards<any, any, any>,
   Timers extends string,
   MessageSignatures extends CallSignature<Messages>,
-  SignalSignatures extends CallSignature<Signals> = CallSignature<Signals>
+  SignalSignatures extends CallSignature<Signals> = CallSignature<Signals>,
 > {
   private state: FastInstanceState<State, Attributes, Phases, Messages, Signals, Timers>;
 
@@ -78,6 +79,15 @@ export class FasteInstance<
   private callDepth: number;
   private handlersOffValues: any;
   private _started = false;
+  private _destroyed = false;
+  /**
+   * a run has begun, so starting again has one to end first
+   */
+  private _begun = false;
+  /**
+   * names the current run: everything created in a run keeps its number, and is dead once it differs
+   */
+  private _run = 0;
   public name: string;
 
   private timers: Partial<Record<Timers, number | undefined>>;
@@ -95,6 +105,10 @@ export class FasteInstance<
     this.messageObservers = [];
     this.messageQueue = [];
     this.timers = {};
+  }
+
+  private _isLive(run: number) {
+    return run === this._run && !this._destroyed;
   }
 
   private _collectHandlers(phase: Phases | MAGIC_PHASES): { [key: string]: boolean } {
@@ -129,9 +143,19 @@ export class FasteInstance<
     return this._trySingleGuard(oldPhase, true) && this._trySingleGuard(newPhase, false);
   }
 
+  /**
+   * moves the run to a phase; every callout it makes can end the run, and the moves after a callout that did are not made
+   * @returns false when a guard rejected the phase, or the run ended before the phase was entered
+   */
   private _transitTo(phase: Phases | MAGIC_PHASES) {
+    const run = this._run;
+    const isLive = () => this._isLive(run);
     const oldPhase = this.state.phase;
     debug(this, 'transit', phase);
+
+    if (!isLive()) {
+      return false;
+    }
 
     if (oldPhase != phase) {
       if (!this._tryGuard(oldPhase, phase)) {
@@ -144,16 +168,30 @@ export class FasteInstance<
         this.__put('@leave', phase, oldPhase);
       }
 
+      if (!isLive()) {
+        return false;
+      }
+
       this.__performHookOn(phase);
+
+      if (!isLive()) {
+        return false;
+      }
+
       this.state.phase = phase;
 
       if (!this._started) {
         this._initialize();
       }
 
-      callListeners(this.stateObservers, phase);
+      if (isLive()) {
+        callListeners(this.stateObservers, phase);
+      }
 
+      // a dead run delivers nothing
       this.__put('@enter', oldPhase, phase);
+    } else if (!this._started) {
+      this._initialize();
     }
 
     return true;
@@ -163,27 +201,41 @@ export class FasteInstance<
     phase?: Phases | MAGIC_PHASES;
     message?: Messages | MAGIC_EVENTS;
   }): InternalMachine<State, Attributes, Phases, Messages, Signals, Timers, MessageSignatures, SignalSignatures> {
+    const run = this._run;
+    const isLive = () => this._isLive(run);
+
     return {
       phase: this.state.phase,
       state: this.state.state,
       attrs: this.state.attrs,
       message: options.message,
-      setState: (newState) =>
-        typeof newState === 'function' ? this._setState(newState(this.state.state)) : this._setState(newState),
-      transitTo: (phase) => this._transitTo(phase === '@current' ? options.phase : phase),
+      setState: (newState) => {
+        if (isLive()) {
+          this._setState(typeof newState === 'function' ? newState(this.state.state) : newState);
+        }
+      },
+      transitTo: (phase) => isLive() && this._transitTo(phase === '@current' ? options.phase : phase),
       emit: (message, ...args) => {
-        if (!this._started) {
+        if (!this._started || !isLive()) {
           // there could be events running after destruction
           return;
         }
 
         this.state.asyncSignals
-          ? invokeAsync(() => callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args))
+          ? invokeAsync(() => {
+              if (isLive()) {
+                callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args);
+              }
+            })
           : callListeners(this.messageObservers as ConnectCall<any, any>[], message, ...args);
       },
-      trigger: (event, ...args) => this.put(event, ...(args as any)),
+      trigger: (event, ...args) => {
+        if (isLive()) {
+          this.put(event, ...(args as any));
+        }
+      },
       startTimer: (timerName) => {
-        if (!this._started) {
+        if (!this._started || !isLive()) {
           // there could be events running after destruction
           return;
         }
@@ -201,7 +253,7 @@ export class FasteInstance<
         }
       },
       stopTimer: (timerName) => {
-        if (this.timers[timerName]) {
+        if (isLive() && this.timers[timerName]) {
           clearTimeout(this.timers[timerName]);
           this.timers[timerName] = undefined;
         }
@@ -213,13 +265,15 @@ export class FasteInstance<
     const oldHandlers = !initialState ? this._collectHandlers(this.state.phase) : {};
     const newHandlers = initialState || nextPhase ? this._collectHandlers(nextPhase) : {};
 
+    const run = this._run;
     const instance = this._createInstance({
       phase: this.state.phase,
     });
     const h = this.handlers.hooks;
 
     Object.keys(newHandlers).forEach((handler: Messages) => {
-      if (!oldHandlers[handler] && h[handler]) {
+      // a hook that ended the run leaves the rest off: nothing would turn them off again
+      if (!oldHandlers[handler] && h[handler] && this._isLive(run)) {
         debug(this, 'hook-on', h[handler]);
 
         this.handlersOffValues[handler] = h[handler]({
@@ -227,42 +281,57 @@ export class FasteInstance<
           phase: undefined,
           message: handler,
         });
+
+        if (!this._isLive(run)) {
+          // the hook ended the run as it turned on, after destroy turned the others off
+          this._hookOff(handler, instance);
+        }
       }
     });
 
     Object.keys(oldHandlers).forEach((handler: Messages) => {
-      if (!newHandlers[handler] && h[handler] && this.handlersOffValues[handler]) {
-        debug(this, 'hook-off', h[handler]);
-
-        this.handlersOffValues[handler]({
-          ...instance,
-          phase: undefined,
-          message: handler,
-        });
-
-        this.handlersOffValues[handler] = undefined;
+      if (!newHandlers[handler]) {
+        this._hookOff(handler, instance);
       }
     });
   }
 
+  private _hookOff(handler: Messages, instance: object) {
+    const off = this.handlersOffValues[handler];
+    this.handlersOffValues[handler] = undefined;
+
+    if (off) {
+      debug(this, 'hook-off', handler);
+      off({ ...instance, phase: undefined, message: handler });
+    }
+  }
+
   private __put(event: string, ...args: any[]): number {
+    const run = this._run;
+    let failed = true;
     this.callDepth++;
 
-    const result = this.__direct_put(event, ...args);
-    this.callDepth--;
+    try {
+      const hits = this.__direct_put(event, ...args);
+      failed = false;
 
-    if (BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
-      if (!this.callDepth) {
-        this._executeMessageQueue();
+      return hits;
+    } finally {
+      // a handler that restarted the machine left this delivery with nothing to unwind
+      if (run === this._run) {
+        this.callDepth--;
+
+        if (!this.callDepth) {
+          this._executeMessageQueue(failed);
+        }
       }
     }
-
-    return result;
   }
 
   private __direct_put(event: string, ...args: any[]): number {
     debug(this, 'put', event, args);
 
+    const run = this._run;
     const h: any = this.handlers.handlers;
     const handlers: MessageHandler<State, Attributes, Phases, (state: any, ...args: any[]) => void>[] = h[event] as any;
     let hits = 0;
@@ -289,19 +358,33 @@ export class FasteInstance<
       });
 
       const handleError = (error: Error) => {
-        if (!this.__direct_put('@error', error)) {
+        if (!this._isLive(run) || !this.__direct_put('@error', error)) {
           throw error;
         }
       };
 
+      const handleLateError = (error: Error) => {
+        if (this._isLive(run)) {
+          handleError(error);
+        } else {
+          // nothing is left to handle it, and it should not take the process down either
+          console.error('faste: an async handler of a finished run failed', error);
+        }
+      };
+
       const executeHandler = (handler: (typeof handlers)[0]) => {
+        if (!this._isLive(run)) {
+          // an earlier handler ended the run
+          return;
+        }
+
         debug(this, 'message-handler', event, handler);
 
         try {
           const invocationResult = assertBusy(handler.callback(instance, ...args));
 
           if (isThenable(invocationResult)) {
-            invocationResult.catch(handleError);
+            Promise.resolve(invocationResult).catch(handleLateError);
           }
         } catch (e) {
           handleError(e);
@@ -330,13 +413,37 @@ export class FasteInstance<
     return hits;
   }
 
-  _executeMessageQueue() {
-    while (this.messageQueue.length) {
-      const q = this.messageQueue;
-      this.messageQueue = [];
+  /**
+   * delivers what is queued, one failure or not: the first failure of a delivery is the one its caller gets
+   * @param failed the delivery already has its failure, so none of these can be thrown
+   */
+  _executeMessageQueue(failed = false) {
+    const run = this._run;
+    let thrown = false;
+    let failure: unknown;
+
+    while (this._isLive(run) && this.messageQueue.length && BUSY_PHASES.indexOf(this.state.phase as any) === -1) {
+      const { message, args } = this.messageQueue.shift();
       this.callDepth++;
-      q.forEach((q) => this.__put(q.message, ...q.args));
-      this.callDepth--;
+
+      try {
+        this.__put(message, ...args);
+      } catch (error) {
+        if (failed || thrown) {
+          console.error('faste: a queued message failed after an earlier failure', error);
+        } else {
+          thrown = true;
+          failure = error;
+        }
+      } finally {
+        if (run === this._run) {
+          this.callDepth--;
+        }
+      }
+    }
+
+    if (thrown) {
+      throw failure;
     }
   }
 
@@ -355,6 +462,20 @@ export class FasteInstance<
    * @param phase
    */
   start(phase?: Phases): this {
+    if (this._begun && !this._destroyed) {
+      // the running run ends the way destroy ends it, so nothing of it reaches the new one
+      this.destroy();
+    }
+
+    if (this._destroyed) {
+      // a new run: nothing of the last one counts as active, and every handle of it is dead
+      this._run++;
+      this._destroyed = false;
+      this.state.phase = undefined;
+    }
+
+    const run = this._run;
+    this._begun = true;
     this.messageQueue = [];
     this.callDepth = 0;
     this._started = false;
@@ -362,7 +483,7 @@ export class FasteInstance<
     if (phase) {
       callListeners(this.stateObservers, START_PHASE);
 
-      if (!this._transitTo(phase)) {
+      if (!this._transitTo(phase) && this._isLive(run)) {
         throw new Error('Faste machine initialization failed - phase was rejected');
       }
     } else {
@@ -514,24 +635,36 @@ export class FasteInstance<
   }
 
   private _initialize() {
+    const run = this._run;
     this._started = true;
     this.__put('@init');
-    this.__performHookOn(null, true);
+
+    if (this._isLive(run)) {
+      this.__performHookOn(null, true);
+    }
   }
   /**
    * destroys the machine
    */
   destroy(): void {
-    this.__performHookOn(undefined);
-    callListeners(this.stateObservers, STOP_PHASE);
+    if (this._destroyed) {
+      return;
+    }
+
+    // the run ends first, so neither a hook's cleanup nor an observer can act in it
+    this._started = false;
+    this._destroyed = true;
+    this.messageQueue = [];
 
     Object.entries(this.timers).forEach(([, value]) => {
       clearTimeout(value as any);
     });
 
     this.timers = {};
-    this.stateObservers = [];
-    //
-    this._started = false;
+
+    // every hook that is on goes off, whichever phase turned it on
+    const instance = this._createInstance({ phase: this.state.phase });
+    Object.keys(this.handlersOffValues).forEach((handler: Messages) => this._hookOff(handler, instance));
+    callListeners(this.stateObservers, STOP_PHASE);
   }
 }

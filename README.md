@@ -5,20 +5,19 @@
   <img src="./assets/table.png" alt="faste" height="233" align="center">
   <br/>
   <br/>
-  <a href="https://circleci.com/gh/theKashey/faste/tree/master">
-     <img src="https://img.shields.io/circleci/project/github/theKashey/faste/master.svg?style=flat-square)" alt="Build status">
+  <a href="https://github.com/theKashey/faste/actions/workflows/ci.yml">
+   <img src="https://github.com/theKashey/faste/actions/workflows/ci.yml/badge.svg?branch=master" alt="Build status">
   </a>
 
-  <a href="https://codecov.io/github/thekashey/faste">
-   <img src="https://img.shields.io/codecov/c/github/thekashey/faste.svg?style=flat-square" />
+  <a href="https://github.com/theKashey/faste/actions">
+   <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FtheKashey%2Ffaste%2Frefs%2Fbadge%2Fmaster%2Fregions-run.json" alt="regions run">
   </a>
 
   <a href="https://www.npmjs.com/package/faste">
    <img src="https://img.shields.io/npm/v/faste.svg?style=flat-square" />
   </a>
-
-  <a href="https://greenkeeper.io/">
-   <img alt="Greenkeeper badge" src="https://badges.greenkeeper.io/theKashey/faste.svg"/>
+  <a href="https://variance-authority.dev/">
+    <img alt="test evidence: Variance Authority" src="https://img.shields.io/badge/test%20evidence-Variance%20Authority-blue?style=flat-square">
   </a>
 
   <br/>
@@ -51,6 +50,12 @@ Core concepts are:
 
 > In react world `attributes` are `props`. In xstate world `state` is `context`
 
+# Install
+
+```bash
+npm install faste
+```
+
 # State machine
 
 State machine _starts_ in one phase, calls _hooks_ for all _messages_ for the current phase,
@@ -79,21 +84,48 @@ const light = faste()
   .on('switch', ['green'], ({ transitTo }) => transitTo('yellow'))
   .on('switch', ['yellow'], ({ transitTo }) => transitTo('red'))
   .on('switch', ['red'], ({ transitTo }) => transitTo('green'))
-  // ⚠️ the following line would throw an error at _compile time_
-  .on('switch', ['green'], ({ transitTo }) => transitTo('red')) // this transition is blocked
+  // ⚠️ TypeScript refuses the following line: `withTransitions` has no green -> red
+  .on('switch', ['green'], ({ transitTo }) => transitTo('red'))
 
   // block transition TO green if any pedestrian is on the road
   .guard(['green'], () => noPedestriansOnTheRoad)
   // block transition FROM red if any pedestrian is on the road
   .trap(['red'], () => !noPedestriansOnTheRoad);
-// PS: noPedestriansOnTheRoad could be read from attr, passed from a higher state machine.
+// PS: noPedestriansOnTheRoad could be read from attrs, passed from a higher state machine.
 ```
+
+`withTransitions` is a compile-time restriction only. Nothing checks it at runtime, so JavaScript code, or a cast, can
+still make the blocked transition. `guard` and `trap` are the runtime checks.
+
+# Messages and signals
+
+Messages come in, signals go out. `put` sends a message to the machine, and `trigger` lets a handler send one to the
+machine itself. `emit` sends a signal to whatever `connect` attached.
+
+```js
+const door = faste()
+  .withPhases(['open', 'closed'])
+  .withMessages(['push'])
+  .withSignals(['opened'])
+  .on('push', ['closed'], ({ transitTo, emit }) => {
+    transitTo('open');
+    emit('opened');
+  })
+  .create();
+
+door.connect((signal) => console.log(signal));
+door.start('closed');
+door.put('push'); // logs "opened"
+```
+
+More in [examples](./docs/examples.md), including async handlers and timers. [Design](./docs/design.md) says where the
+idea came from.
 
 # API
 
 ## Machine blueprint
 
-`faste(options)` - defines a new faste machine
+`faste()` - defines a new faste machine
 every faste instance provide next _chainable_ commands
 
 - `on(eventName, [phases], callback)` - set a hook `callback` for `eventName` message in states `states`.
@@ -101,17 +133,19 @@ every faste instance provide next _chainable_ commands
 
 - `guard(phases, callback)` - add a transition guard, prevention transition to the phase
 - `trap(phases, callback)` - add a transition guard, prevention transition from the phase
+- `scope(callback)` - runs `callback` with the builder, to reuse logic among machines
 
 In development mode, and for typed languages you could use next commands
 
 - `withState(state)` - set a initial state (use @init hook to derive state from props).
 - `withPhases(phases)` - limit phases to provided set.
 - `withTimers(timersConfuguration)` - configures timers
-- `withTransitions([phases]:[phases])` - limit phase transitions
+- `withTransitions([phases]:[phases])` - limit phase transitions, at compile time only
 - `withMessages(messages)` - limit messages to provided set.
 - `withAttrs(attributes)` - limit attributes to provided set.
 - `withSignals(signals)` - limit signals to provided set.
--
+- `withAsyncSignals()` - deliver signals asynchronously
+
 - `withMessageArguments<MessageConfiguration>()` - enabled arguments for messages
 - `withSignalArguments<SignalConfiguration>()` - enabled arguments for signals
 
@@ -131,7 +165,12 @@ Each instance of Faste will have:
 - `phase` - returns the current phase
 - `instance` - returns the current internal state.
 
-- `destroy` - exits the current state, terminates all hooks, and stops machine.
+- `destroy` - terminates all hooks and timers, drops queued messages, and stops the machine. It runs no `@leave`, and
+  `phase` keeps answering the last phase.
+- `start` - begins a new run with a full entry: `@init`, `@enter`, hooks and observers, from no phase. On a running
+  machine it calls `destroy` first.
+  State, attributes, observers and connections stay. Whatever the earlier run created (an instance, a callback a hook
+  kept, a pending async signal) does nothing any more.
 
 - `namedBy(string)` - sets name of the instance (for debug).
 
@@ -154,7 +193,7 @@ For all callbacks the first argument is `flow` instance, containing.
 
 - `@init` - on initialization
 - `@enter` - on phase enter, last phase will be passed as a second arg.
-- `@leave` - on phase enter, new phase will be passed as a second arg.
+- `@leave` - on phase leave, new phase will be passed as a second arg.
 - `@change` - on state change, old state will be passed as a second arg.
 - `@miss` - on event without handler
 - `@error` - an error handler. If no errors handler will be found the real error will be thrown
@@ -162,7 +201,8 @@ For all callbacks the first argument is `flow` instance, containing.
 ### Magic phases
 
 - `@current` - set the same phase as it was on the handler entry
-- `@busy` - set the _busy_ phase, when no other handler could be called
+- `@busy` - set the _busy_ phase, when no other handler could be called. Messages are queued until it ends
+- `@locked` - like `@busy`, but messages are ignored
 
 ### Hooks
 
@@ -176,25 +216,20 @@ Hook activates when message starts or ends it existence, ie when there is `on` c
 
 ## InternalState
 
-Each `on` or `hook` handler will receive `internalState` as a first argument, with following shape
+Each `on` handler or hook will receive `internalState` as a first argument, with following shape
 
 ```js
- attrs: { ...
-    AttributesYouSet
-}
-;  // attributes
-state: { ..
-    CurrentState
-}
-;       // state
+attrs; // attributes
+state; // state
+phase; // current phase
+message; // the message being handled
 
-setState(newState);              // setState (as seen in React)
-
-transitTo(phase);                // move to a new phase
-
-emit(message, ...args);          // emit Signal to the outer world (connected)
-
-trigger(event, ...args);         // trigger own message handler (dispatch an internal action)
+setState(newState); // setState (as seen in React)
+transitTo(phase); // move to a new phase
+emit(signal, ...args); // emit Signal to the outer world (connected)
+trigger(message, ...args); // trigger own message handler (dispatch an internal action)
+startTimer(timerName); // starts a Timer
+stopTimer(timerName); // stops a Timer
 ```
 
 # Debug
@@ -202,286 +237,11 @@ trigger(event, ...args);         // trigger own message handler (dispatch an int
 Debug mode is integrated into Faste.
 
 ```js
-import {setFasteDebug} from 'faste'
+import { setFasteDebug } from 'faste';
 
-setFasteDebug(true);
 setFasteDebug(true);
 setFasteDebug((instance, message, args) => console.log(...));
 ```
-
-# Examples
-
-Try online : https://codesandbox.io/s/n7kv9081xp
-
-### Using different handlers in different states
-
-```js
-// common code - invert the flag
-onClick = () => this.setState((state) => ({ enabled: !state.enabled }));
-
-// faste - use different flags for different states
-faste()
-  .on('click', 'disabled', ({ transitTo }) => transitTo('enabled'))
-  .on('click', 'enabled', ({ transitTo }) => transitTo('disabled'));
-```
-
-### React to state change
-
-```js
-// common code - try to reverse engineer the change
-componentDidUpdate(oldProps)
-{
-    if (oldProps.enabled !== this.props.enabled) {
-        if (this.props.enabled) {
-            // I was enabled!
-        } else {
-            // I was disabled!
-        }
-    }
-}
-
-// faste - use "magic" methods
-faste()
-    .on('@enter', ['disabled'], () => /* i was disabled */)
-    .on('@enter', ['enabled'], () => /* i was enabled */)
-    // or
-    .on('@leave', ['disabled'], () => /* i am no more disabled */)
-    .on('@leave', ['enabled'], () => /* i am no more enabled */)
-```
-
-### Connected states
-
-https://codesandbox.io/s/5zx8zl91ll
-
-```js
-// starts a timer when active
-const SignalSource = faste()
-  .on('@enter', ['active'], ({ setState, attrs, emit }) =>
-    setState({ interval: setInterval(() => emit('message'), attrs.duration) })
-  )
-  .on('@leave', ['active'], ({ state }) => clearInterval(state.interval));
-
-// responds to "message" by moving from tick to tock
-// emiting the current state outside
-const TickState = faste()
-  // autoinit to "tick" mode
-  .on('@init', ({ transitTo }) => transitTo('tick'))
-  // message handlers
-  .on('message', ['tick'], ({ transitTo }) => transitTo('tock'))
-  .on('message', ['tock'], ({ transitTo }) => transitTo('tick'))
-  .on('@leave', ({ emit }, newPhase) => emit('currentState', newPhase));
-
-// just transfer message to attached node
-const DisplayState = faste().on('currentState', ({ attrs }, message) => (attrs.node.innerHTML = message));
-
-// create machines
-const signalSource = SignalSource.create().attrs({
-  duration: 1000,
-});
-const tickState = TickState.create();
-const displayState = DisplayState.create().attrs({
-  node: document.querySelector('.display'),
-});
-
-// direct connect signal source and ticker
-signalSource.connect(tickState);
-
-// "functionaly" connect tickes and display
-tickState.connect((message, payload) => displayState.put(message, payload));
-
-// RUN! start signal in active mode
-signalSource.start('active');
-```
-
-### Traffic light
-
-```js
-const state = faste()
-  .withPhases(['red', 'yellow', 'green'])
-  .withMessages(['tick', 'next'])
-
-  .on('tick', ['green'], ({ transit }) => transit('yellow'))
-  .on('tick', ['yellow'], ({ transit }) => transit('red'))
-  .on('tick', ['red'], ({ transit }) => transit('green'))
-
-  // on 'next' trigger 'tick' for a better debugging.
-  // just rethrow event
-  .on('next', [], ({ trigger }) => trigger('tick'))
-
-  // on "green" - start timer
-  .on('@enter', ['green'], ({ setState, attrs, trigger }) =>
-    setState({
-      interval: setInterval(() => trigger('next'), attrs.duration),
-    })
-  )
-  // on "red" - stop timer
-  .on('@leave', ['red'], ({ state }) => clearInterval(state.interval))
-
-  .check();
-
-state.create().attrs({ duration: 1000 }).start('green');
-```
-
-Try online : https://codesandbox.io/s/n7kv9081xp
-
-### Draggable
-
-```js
-const domHook =
-  (eventName) =>
-  ({ attrs, trigger }) => {
-    const callback = (event) => trigger(eventName, event);
-    attrs.node.addEventListener(eventName, callback);
-    // "hook" could return anything, callback for example
-    return () => {
-      attrs.node.removeEventListener(eventName, hook);
-    };
-  };
-
-const state = faste({})
-  .on('@enter', ['active'], ({ emit }) => emit('start'))
-  .on('@leave', ['active'], ({ emit }) => emit('end'))
-
-  .on('mousedown', ['idle'], ({ transitTo }) => transitTo('active'))
-  .on('mousemove', ['active'], (_, event) => emit('move', event))
-  .on('mouseup', ['active'], ({ transitTo }) => transitTo('idle'));
-
-hooks({
-  mousedown: domHook('mousedown'),
-  mousemove: domHook('mousemove'),
-  mouseup: domHook('mouseup'),
-})
-  .check()
-
-  .attr({ node: document.body })
-  .start('idle');
-```
-
-# Async
-
-Message handler doesn't have to be sync. But managing async commands could be hard. But will not
-
-1. Accept command only in initial state, then transit to temporal state to prevent other commands to be executes.
-
-```js
-const Login = faste().on('login', ['idle'], ({ transitTo }, { userName, password }) => {
-  transitTo('logging-in'); // just transit to "other" state
-  login(userName, password)
-    .then(() => transitTo('logged'))
-    .catch(() => transitTo('error'));
-});
-```
-
-2. Accept command only in initial state, then transit to execution state, and do the job on state enter
-
-```js
-const Login = faste()
-    .on('login', ['idle'], ({transitTo}, data) => transitTo('logging', data)
-        .on('@enter', ['logging'], ({transitTo}, {userName, password}) => {
-            login(userName, password)
-                .then(() => transitTo('logged'))
-                .catch(() => transitTo('error'))
-        });
-```
-
-2. Always accept command, but be "busy" while doing stuff
-
-```js
-const Login = faste().on('login', ({ transitTo }, { userName, password }) => {
-  transitTo('@busy'); // we are "busy"
-  return login(userName, password)
-    .then(() => transitTo('logged'))
-    .catch(() => transitTo('error'));
-});
-```
-
-> handler returns Promise( could be async ) to indicate that ending in @busy state is not a mistake, and will not lead
-> to deadlock.
-
-By default `@busy` will queue messages, executing them after leaving busy phase.
-If want to ignore them - instead of `@busy`, you might use `@locked` phase, which will ignore them.
-
-PS: You probably will never need those states.
-
-## Using timers to create timers
-
-Plain variant
-
-```tsx
-const SignalSource = faste()
-  .on('@enter', ['active'], ({ setState, attrs, emit }) =>
-    setState({ interval: setInterval(() => emit('message'), attrs.duration) })
-  )
-  .on('@leave', ['active'], ({ state }) => clearInterval(state.interval));
-```
-
-Hook and timer based
-
-```tsx
-const SignalSource = faste()
-  .on('tick', ['active'], ({ emit, startTimer }) => {
-    emit('message');
-  })
-  .hook({
-    tick: ({ attrs }) => {
-      const interval = setInterval(() => emit('message'), attrs.duration);
-      return () => clearInterval(interval);
-    },
-  });
-```
-
-Hook and timer based
-
-```tsx
-const SignalSource = faste()
-  .withTimers({
-    T0: 1000,
-  })
-  .on('on_T0', ({ emit, startTimer }) => {
-    emit('message');
-    startTimer('T0'); //restarts timers
-  })
-  .on('@enter', ['active'], ({ startTimer }) => startTimer('T0'));
-```
-
-# SDL and Block
-
-Faste was born from this. From Q.931(EDSS) state definition.
-
-How it starts. What signals it accepts. What it does next.
-
-![U17](./assets/capeu17.gif)
-
-That is quite simple diagram.
-
-## Thoughts
-
-This is a Finite State Machine from
-SDL([Specification and Description Language](https://en.wikipedia.org/wiki/Specification_and_Description_Language))
-prospective.
-SDL defines state as a set of messages, it should react on, and the actions beneath.
-
-Once `state` receives a `message` it executes an `action`, which could perform calculations and/or change the
-current state.
-
-> The goal is not to **change the state**, but - **execute a bound action**.
-> From this prospective faste is closer to RxJX.
-
-Usually "FSM" are more focused on state transitions, often even omitting any operations on message receive.
-In the Traffic Light example it could be useful, but in more real life examples - probably not.
-
-Faste is more about _when_ you will be able to do _what_. **What** you will do, **when** you receive event, and what you
-will do next.
-
-Keeping in mind the best practices, like KISS and DRY, it is better to invert state->message->action connection,
-as long as actions are most complex part of it, and messages are usually reused across different states.
-
-And, make things more common we will call "state" as a "phase", and "state" will be for "internal state".
-
-The key idea is not about transition between states, but transition between behaviors.
-Keep in mind - if some handler is not defined in some state, and you are sending a message - it will be **lost**.
-
-> Written in TypeScript. To make things less flexible. Flow definitions as incomplete.
 
 # Prior art
 
@@ -489,6 +249,18 @@ This library combines ideas from [xstate](https://github.com/davidkpiano/xstate)
 and [redux-saga](https://github.com/redux-saga/redux-saga).
 The original idea is based on [xflow](https://gist.github.com/theKashey/93f10d036961f4bd7dd728153bc4bea9) state machine,
 developed for [CT Company](http://www.ctcom.com.tw)'s VoIP solutions back in 2005.
+
+# Releasing
+
+1. Bump `version` in `package.json` and commit it.
+2. Tag that commit `v<version>`, for example `git tag v2.0.1`.
+3. Push the commit and the tag: `git push origin master v2.0.1`.
+
+The tag starts [`release.yml`](.github/workflows/release.yml). It refuses a tag that differs from `package.json`, then
+builds, tests and publishes with provenance. No npm token is stored in the repository.
+
+One-time setup on npmjs.com: open the package's Settings, find Trusted Publisher, choose GitHub Actions, and enter
+owner `theKashey`, repository `faste`, workflow filename `release.yml`.
 
 # Licence
 
